@@ -149,6 +149,60 @@ function main() {
   fs.writeFileSync(path.join(compAdvanced, 'variation-swatches.twig'), swatchesTwig, 'utf8');
   fs.writeFileSync(path.join(compAdvanced, 'quick-add.twig'), quickAddTwig, 'utf8');
 
+  // Predefined pages (scaffold)
+  const ensure = (p) => fs.mkdirSync(p, { recursive: true });
+  const writePage = (relPath, content) => {
+    const full = path.join(viewsPages, relPath);
+    ensure(path.dirname(full));
+    fs.writeFileSync(full, content, 'utf8');
+  };
+  const page = (title, body) => `{% extends "layouts/master.twig" %}\n{% block title %}${title}{% endblock %}\n{% block content %}\n${body}\n{% endblock %}\n`;
+  // Product listings
+  writePage('product/index.twig', page('Products', `  {% hook 'product:index.items.start' %}
+  <div class="product-listing">{% include "components/product/grid.twig" %}</div>
+  {% hook 'product:index.items.end' %}`));
+  // Single product
+  writePage('product/single.twig', page('Product', `  <article class="product-single">
+    {% include "components/advanced/product-gallery.twig" %}
+    {% include "components/advanced/variation-swatches.twig" %}
+    {% include "components/advanced/quick-add.twig" %}
+  </article>`));
+  // Customer pages
+  writePage('customer/profile.twig', page('Profile', `  {% hook 'customer:profile.form.start' %}
+  {% hook 'customer:profile.form.fields.start' %}`));
+  writePage('customer/wishlist.twig', page('Wishlist', `  {% hook 'customer:wishlist.items.start' %}
+  <div class="wishlist"></div>
+  {% hook 'customer:wishlist.items.end' %}`));
+  writePage('customer/notifications.twig', page('Notifications', `  {% hook 'customer:notifications.items.start' %}
+  <div class="notifications"></div>
+  {% hook 'customer:notifications.items.end' %}`));
+  writePage('customer/orders/index.twig', page('Orders', `  {% hook 'customer:orders.index.items.start' %}
+  <div class="orders-list"></div>
+  {% hook 'customer:orders.index.items.end' %}`));
+  writePage('customer/orders/single.twig', page('Order Details', `  <div class="order-details"></div>`));
+  // Blog pages
+  writePage('blog/index.twig', page('Blog', `  <div class="blog-list"></div>`));
+  writePage('blog/single.twig', page('Article', `  <article class="blog-article"></article>`));
+  // Brands pages
+  writePage('brands/index.twig', page('Brands', `  {% hook 'brands:index.items.start' %}
+  <div class="brands-list"></div>
+  {% hook 'brands:index.items.end' %}`));
+  writePage('brands/single.twig', page('Brand', `  {% hook 'brands:single.details.start' %}
+  <div class="brand-details"></div>
+  {% hook 'brands:single.details.end' %}`));
+  // Cart / Loyalty / Thank-you / Single / Landing
+  writePage('cart.twig', page('Cart', `  {% hook 'cart:items.start' %}
+  <div class="cart"></div>
+  {% hook 'cart:items.end' %}`));
+  writePage('loyalty.twig', page('Loyalty', `  <div class="loyalty"></div>`));
+  writePage('thank-you.twig', page('Thank You', `  {% hook 'thank-you:start' %}
+  {% hook 'thank-you:items.start' %}
+  <div class="summary"></div>
+  {% hook 'thank-you:items.end' %}
+  {% hook 'thank-you:end' %}`));
+  writePage('page-single.twig', page('Page', `  <div class="page-single"></div>`));
+  writePage('landing-page.twig', page('Landing', `  <div class="landing"></div>`));
+
   const themeJson = {
     name: 'Beto Theme',
     version: '0.1.0',

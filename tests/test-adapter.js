@@ -4,6 +4,13 @@ import path from 'node:path';
 const dir = path.join('build', 'salla');
 const twigIndex = path.join(dir, 'views', 'pages', 'index.twig');
 const twigMaster = path.join(dir, 'views', 'layouts', 'master.twig');
+// Predefined pages
+const pProductIndex = path.join(dir, 'views', 'pages', 'product', 'index.twig');
+const pProductSingle = path.join(dir, 'views', 'pages', 'product', 'single.twig');
+const pCart = path.join(dir, 'views', 'pages', 'cart.twig');
+const pThankYou = path.join(dir, 'views', 'pages', 'thank-you.twig');
+const pBrandsIndex = path.join(dir, 'views', 'pages', 'brands', 'index.twig');
+const pBrandsSingle = path.join(dir, 'views', 'pages', 'brands', 'single.twig');
 const twigHeader = path.join(dir, 'views', 'components', 'header', 'header.twig');
 const twigFooter = path.join(dir, 'views', 'components', 'footer', 'footer.twig');
 const twigProductCard = path.join(dir, 'views', 'components', 'product', 'card.twig');
@@ -40,4 +47,11 @@ if (!fs.existsSync(twilight)) throw new Error('twilight.json missing');
 if (!fs.existsSync(localesDir)) throw new Error('locales missing');
 if (!fs.existsSync(assetSwatches)) throw new Error('assets/styles/swatches.css missing');
 if (!fs.existsSync(assetInteraction)) throw new Error('assets/js/product-interaction.js missing');
+// Check key predefined pages exist
+if (!fs.existsSync(pProductIndex)) throw new Error('pages/product/index.twig missing');
+if (!fs.existsSync(pProductSingle)) throw new Error('pages/product/single.twig missing');
+if (!fs.existsSync(pCart)) throw new Error('pages/cart.twig missing');
+if (!fs.existsSync(pThankYou)) throw new Error('pages/thank-you.twig missing');
+if (!fs.existsSync(pBrandsIndex)) throw new Error('pages/brands/index.twig missing');
+if (!fs.existsSync(pBrandsSingle)) throw new Error('pages/brands/single.twig missing');
 console.log('✅ Adapter output exists (views + theme + twilight + locales)');
