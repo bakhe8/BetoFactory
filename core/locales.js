@@ -1,12 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { ensureDir } from './utils/fs.js';
 
 const root = process.cwd();
 const outDir = path.join(root, 'build', 'salla', 'locales');
-
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
 
 function main() {
   ensureDir(outDir);
@@ -24,4 +21,3 @@ function main() {
 }
 
 main();
-

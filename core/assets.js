@@ -1,26 +1,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { ensureDir, copyFileSafe, writeIfMissing } from './utils/fs.js';
 
 const root = process.cwd();
 const canonicalPath = path.join(root, 'canonical', 'theme.json');
 const inputDir = path.join(root, 'input');
 const buildDir = path.join(root, 'build', 'salla');
-
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
-
-function copyFileSafe(src, dest) {
-  ensureDir(path.dirname(dest));
-  fs.copyFileSync(src, dest);
-}
-
-function writeIfMissing(file, content) {
-  if (!fs.existsSync(file)) {
-    ensureDir(path.dirname(file));
-    fs.writeFileSync(file, content, 'utf8');
-  }
-}
 
 function main() {
   if (!fs.existsSync(canonicalPath)) {
