@@ -44,6 +44,12 @@ if (!fs.existsSync(twigAdvSwatches)) throw new Error('views/components/advanced/
 if (!fs.existsSync(twigAdvQuickAdd)) throw new Error('views/components/advanced/quick-add.twig missing');
 if (!fs.existsSync(theme)) throw new Error('theme.json missing');
 if (!fs.existsSync(twilight)) throw new Error('twilight.json missing');
+// Validate presence of key settings in twilight
+const tw = JSON.parse(fs.readFileSync(twilight, 'utf8'));
+const expectSetting = (id) => {
+  if (!tw.settings || !tw.settings.find((s) => s.id === id)) throw new Error(`twilight setting missing: ${id}`);
+};
+['interactive_product','show_variation_swatches','quick_ajax_add','perf_lazy_loading','perf_async_scripts','perf_critical_css'].forEach(expectSetting);
 if (!fs.existsSync(localesDir)) throw new Error('locales missing');
 if (!fs.existsSync(assetSwatches)) throw new Error('assets/styles/swatches.css missing');
 if (!fs.existsSync(assetInteraction)) throw new Error('assets/js/product-interaction.js missing');

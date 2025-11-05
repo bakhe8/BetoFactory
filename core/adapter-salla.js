@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -235,7 +235,13 @@ function main() {
         id: 'show_products_grid',
         label: 'Show products grid',
         value: Boolean(model.components && model.components['product-grid'])
-      }
+      },
+      { type: 'boolean', id: 'interactive_product', label: 'Enable interactive product demo', value: Boolean(model.components && model.components['interactive-product']) },
+      { type: 'boolean', id: 'show_variation_swatches', label: 'Show variation swatches', value: true },
+      { type: 'boolean', id: 'quick_ajax_add', label: 'Quick AJAX add-to-cart', value: true },
+      { type: 'boolean', id: 'perf_lazy_loading', label: 'Lazy load images', value: true },
+      { type: 'boolean', id: 'perf_async_scripts', label: 'Async scripts', value: true },
+      { type: 'boolean', id: 'perf_critical_css', label: 'Inline critical CSS', value: false }
     ]
   };
   fs.writeFileSync(path.join(outDir, 'twilight.json'), JSON.stringify(twilight, null, 2), 'utf8');
@@ -244,3 +250,4 @@ function main() {
 }
 
 main();
+
