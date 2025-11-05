@@ -12,7 +12,19 @@ class SchemaValidator {
   async validateFolder(folderPath){ if (!(await FSHelpers.exists(folderPath))) { this.logger.error(`Folder does not exist: ${folderPath}`); return { valid:false, total:0, validCount:0 }; } const files = await FSHelpers.readdir(folderPath); const json = files.filter(f=>f.endsWith('.json')); this.logger.info(`Validating ${json.length} files in ${folderPath}`); let validCount=0; const results=[]; for (const f of json){ const p=path.join(folderPath,f); const r=this.validateFile(p); results.push({ file:f, valid:r.valid, errors:r.errors }); if (r.valid) validCount++; } return { valid: validCount===json.length, total: json.length, validCount, results } }
 }
 
+  async validateSmartInputFolder(folderName){
+    const path = require('path'); const fs = require('fs-extra');
+    const canonicalPath = path.join('smart-input','canonical', folderName);
+    if (!(await fs.pathExists(canonicalPath))) { this.logger.error('Folder not found: ' + canonicalPath); return false; }
+    const files = await fs.readdir(canonicalPath);
+    const jsonFiles = files.filter(f=> f.endsWith('.json') && !f.includes('qa-summary'));
+    let validCount = 0;
+    for (const f of jsonFiles){ const result = this.validateFile(path.join(canonicalPath, f)); if (result.valid) validCount++; }
+    this.logger.info('Smart Input Validation: ' + validCount + '/' + jsonFiles.length + ' valid files in ' + folderName);
+    return validCount === jsonFiles.length;
+  }
 module.exports = new SchemaValidator();
+
 
 
 
