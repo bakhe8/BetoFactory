@@ -20,10 +20,18 @@ const assetInteraction = path.join(dir, 'assets', 'js', 'product-interaction.js'
 if (!fs.existsSync(dir)) throw new Error('build/salla missing');
 if (!fs.existsSync(twigIndex)) throw new Error('views/pages/index.twig missing');
 if (!fs.existsSync(twigMaster)) throw new Error('views/layouts/master.twig missing');
+// Check hooks in master layout
+const master = fs.readFileSync(twigMaster, 'utf8');
+if (!master.includes("{% hook 'head:start' %}")) throw new Error('head:start hook missing in master.twig');
+if (!master.includes("{% hook 'body:classes' %}")) throw new Error('body:classes hook missing in master.twig');
 if (!fs.existsSync(twigHeader)) throw new Error('views/components/header/header.twig missing');
 if (!fs.existsSync(twigFooter)) throw new Error('views/components/footer/footer.twig missing');
 if (!fs.existsSync(twigProductCard)) throw new Error('views/components/product/card.twig missing');
 if (!fs.existsSync(twigProductGrid)) throw new Error('views/components/product/grid.twig missing');
+// Check product index hooks
+const grid = fs.readFileSync(twigProductGrid, 'utf8');
+if (!grid.includes("{% hook 'product:index.items.start' %}")) throw new Error('product:index.items.start hook missing');
+if (!grid.includes("{% hook 'product:index.items.end' %}")) throw new Error('product:index.items.end hook missing');
 if (!fs.existsSync(twigAdvGallery)) throw new Error('views/components/advanced/product-gallery.twig missing');
 if (!fs.existsSync(twigAdvSwatches)) throw new Error('views/components/advanced/variation-swatches.twig missing');
 if (!fs.existsSync(twigAdvQuickAdd)) throw new Error('views/components/advanced/quick-add.twig missing');

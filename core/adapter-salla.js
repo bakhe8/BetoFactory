@@ -34,18 +34,23 @@ function main() {
   const masterTwig = `<!doctype html>
 <html lang="ar">
   <head>
+    {% hook 'head:start' %}
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% hook head %}
     <title>{% block title %}${defaultHeroTitle.replace(/'/g, "''")}{% endblock %}</title>
     <link rel="stylesheet" href="/assets/styles/app.css" />
+    {% hook 'head:end' %}
   </head>
-  <body>
+  <body class="{% hook 'body:classes' %}">
+    {% hook 'body:start' %}
     {% include "components/header/header.twig" %}
     <main>
       {% block content %}{% endblock %}
     </main>
     {% include "components/footer/footer.twig" %}
     <script src="/assets/js/app.js" defer></script>
+    {% hook 'body:end' %}
   </body>
 </html>`;
 
@@ -84,20 +89,25 @@ function main() {
   fs.writeFileSync(path.join(viewsPages, 'index.twig'), indexTwig, 'utf8');
 
   // Components: header & footer
-  const headerTwig = `<header class="site-header">
+  const headerTwig = `{% hook 'component:header.header.start' %}
+<header class="site-header">
   <div class="container">
     <h1>{{ store.name | default('Salla Store') }}</h1>
     <span class="currency">{{ salla.currency.code | default('SAR') }}</span>
   </div>
-</header>`;
-  const footerTwig = `<footer class="site-footer"><small>&copy; {{ "now"|date("Y") }} {{ store.name | default('Salla Store') }}</small></footer>`;
+</header>
+{% hook 'component:header.header.end' %}`;
+  const footerTwig = `{% hook 'component:footer.footer.start' %}
+<footer class="site-footer"><small>&copy; {{ "now"|date("Y") }} {{ store.name | default('Salla Store') }}</small></footer>
+{% hook 'component:footer.footer.end' %}`;
   ensureDir(path.join(viewsComponents, 'header'));
   ensureDir(path.join(viewsComponents, 'footer'));
   fs.writeFileSync(path.join(viewsComponents, 'header', 'header.twig'), headerTwig, 'utf8');
   fs.writeFileSync(path.join(viewsComponents, 'footer', 'footer.twig'), footerTwig, 'utf8');
 
   // Components: product card + grid
-  const productCardTwig = `<article class="product-card">
+  const productCardTwig = `{% hook 'component:product.card.start' %}
+<article class="product-card">
   <a href="{{ product.url | default('#') }}">
     <div class="thumb">
       <img src="{{ product.image | default('') }}" alt="{{ product.name | default('') }}" />
@@ -111,8 +121,11 @@ function main() {
       {% endif %}
     </div>
   </a>
-</article>`;
-  const productGridTwig = `<div class="product-grid">
+</article>
+{% hook 'component:product.card.end' %}`;
+  const productGridTwig = `{% hook 'component:product.grid.start' %}
+<div class="product-grid">
+  {% hook 'product:index.items.start' %}
   {% if products is defined and products|length > 0 %}
     <div class="grid">
       {% for product in products %}
@@ -122,14 +135,16 @@ function main() {
   {% else %}
     <p>No products to show.</p>
   {% endif %}
-</div>`;
+  {% hook 'product:index.items.end' %}
+</div>
+{% hook 'component:product.grid.end' %}`;
   fs.writeFileSync(path.join(compProduct, 'card.twig'), productCardTwig, 'utf8');
   fs.writeFileSync(path.join(compProduct, 'grid.twig'), productGridTwig, 'utf8');
 
   // Advanced interactive components
-  const galleryTwig = `<div class="product-gallery">\n  {% if product and product.images is defined %}\n    <div class="gallery">\n      {% for image in product.images %}\n        <img src="{{ image }}" alt="{{ product.name | default('') }}" />\n      {% endfor %}\n    </div>\n  {% endif %}\n</div>`;
-  const swatchesTwig = `<div class="variation-swatches">\n  {% if product and product.variations is defined %}\n    {% for v in product.variations %}\n      <button class="swatch" data-variant-id="{{ v.id }}">{{ v.name }}</button>\n    {% endfor %}\n  {% endif %}\n</div>`;
-  const quickAddTwig = `<div class="quick-add">\n  <button class="quick-add-btn" data-product-id="{{ product.id | default('') }}">Add to Cart</button>\n</div>`;
+  const galleryTwig = `{% hook 'component:advanced.product-gallery.start' %}\n<div class="product-gallery">\n  {% if product and product.images is defined %}\n    <div class="gallery">\n      {% for image in product.images %}\n        <img src="{{ image }}" alt="{{ product.name | default('') }}" />\n      {% endfor %}\n    </div>\n  {% endif %}\n</div>\n{% hook 'component:advanced.product-gallery.end' %}`;
+  const swatchesTwig = `{% hook 'component:advanced.variation-swatches.start' %}\n<div class="variation-swatches">\n  {% if product and product.variations is defined %}\n    {% for v in product.variations %}\n      <button class="swatch" data-variant-id="{{ v.id }}">{{ v.name }}</button>\n    {% endfor %}\n  {% endif %}\n</div>\n{% hook 'component:advanced.variation-swatches.end' %}`;
+  const quickAddTwig = `{% hook 'component:advanced.quick-add.start' %}\n<div class="quick-add">\n  <button class="quick-add-btn" data-product-id="{{ product.id | default('') }}">Add to Cart</button>\n</div>\n{% hook 'component:advanced.quick-add.end' %}`;
   fs.writeFileSync(path.join(compAdvanced, 'product-gallery.twig'), galleryTwig, 'utf8');
   fs.writeFileSync(path.join(compAdvanced, 'variation-swatches.twig'), swatchesTwig, 'utf8');
   fs.writeFileSync(path.join(compAdvanced, 'quick-add.twig'), quickAddTwig, 'utf8');
