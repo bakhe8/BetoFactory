@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beto Factory — Core Edition (Edition-Labeled Architecture)</title>
+  <style>
+    body{font-family:Inter,system-ui;background:#fafbff;color:#111;margin:0;line-height:1.6}
+    header{background:#11224E;color:#fff;padding:20px 32px;font-size:22px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 8px rgba(0,0,0,0.15)}
+    main{max-width:1100px;margin:0 auto;padding:24px}
+    h2{color:#11224E;border-bottom:2px solid #0046FF;padding-bottom:4px;margin-top:40px}
+    h3{color:#0046FF;margin-top:24px}
+    section{margin:24px 0}
+    ul{margin-left:20px}
+    table{border-collapse:collapse;width:100%;margin-top:10px;border-radius:8px;overflow:hidden;box-shadow:0 0 12px rgba(0,0,0,0.05)}
+    th,td{border:1px solid #ddd;padding:10px 8px;text-align:left}
+    th{background:#0046FF;color:#fff}
+    code,pre{background:#eef;font-size:90%;padding:2px 4px;border-radius:4px}
+    pre{padding:10px;overflow:auto}
+  </style>
+</head>
+<body>
+<header>🏗️ Beto Factory — Core Edition (Edition-Labeled Architecture)</header>
+<main>
+  <section>
+    <h2>🎯 Simplification Strategy Overview</h2>
+    <p>The Core Edition of <strong>Beto Factory</strong> focuses exclusively on <strong>one target platform</strong> while preserving the modular architecture required for future multi-platform expansion.</p>
+  </section>
+
+  <section>
+    <h2>✅ Immediate Advantages</h2>
+    <h3>Faster Time-to-Market</h3>
+    <ul><li>Focus on one platform dramatically reduces complexity.</li><li>Deliver a working version in weeks instead of months.</li><li>Collect early user feedback and validate faster.</li></ul>
+    <h3>Reduced Development Risk</h3>
+    <ul><li>Smaller, maintainable codebase = fewer bugs.</li><li>Single-platform scope means simpler integration.</li><li>Easier to pivot before heavy scaling.</li></ul>
+    <h3>Lower Resource Requirements</h3>
+    <ul><li>Smaller team can manage full lifecycle.</li><li>Reduced infrastructure cost and faster iteration.</li></ul>
+    <h3>Proven Market Validation</h3>
+    <ul><li>Start where you already have expertise.</li><li>Build a strong reputation in a focused niche.</li><li>Leverage success to expand later.</li></ul>
+  </section>
+
+  <section>
+    <h2>✅ Technical Strengths</h2>
+    <h3>Cleaner Architecture</h3>
+    <ul><li>Forces modular abstraction and separation of concerns.</li><li>Adapter pattern ensures future platform compatibility.</li><li>Core remains stable and easily testable.</li></ul>
+    <h3>Better Developer Experience</h3>
+    <ul><li>Smaller, focused codebase improves comprehension.</li><li>New contributors onboard quickly.</li><li>Streamlined reviews and testing workflows.</li></ul>
+  </section>
+
+  <section>
+    <h2>⚙️ Core Architecture Overview</h2>
+    <p>Beto Factory Core Edition retains the essential five-step architecture from concept to deployment.</p>
+    <ol>
+      <li><strong>HTML Input:</strong> Raw design templates.</li>
+      <li><strong>Canonical Model:</strong> Structured JSON layout representation.</li>
+      <li><strong>Platform Adapter:</strong> Converts canonical JSON → platform-specific templates.</li>
+      <li><strong>Output Cleaner:</strong> Validates, optimizes, and minimizes export.</li>
+      <li><strong>ZIP Export & Deploy:</strong> Generates <code>beto-theme.zip</code> ready for upload.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>📘 Canonical Model Schema Definition</h2>
+    <pre><code class="language-json">{
+  "$schema": "https://beto.factory/schema/canonical.json",
+  "layout": {
+    "header": "default",
+    "footer": "default"
+  },
+  "components": {
+    "hero": {"type": "banner", "props": {"title": "Welcome"}},
+    "product-grid": {"type": "grid"}
+  },
+  "assets": {"images": ["logo.png", "hero.jpg"]}
+}</code></pre>
+    <p>This defines the universal structure that every adapter reads to generate platform-specific templates.</p>
+  </section>
+
+  <section>
+    <h2>🧩 Adapter Interface Specification</h2>
+    <pre><code class="language-ts">interface Adapter {
+  name: string;
+  input: CanonicalModel;
+  mapComponent(name: string, template: string): void;
+  generateConfig(): ThemeConfig;
+  export(outputDir: string): Promise<void>;
+}</code></pre>
+    <p>This contract ensures all adapters share a consistent implementation. Future platforms can plug in seamlessly without rewriting the core logic.</p>
+  </section>
+
+  <section>
+    <h2>🧰 CLI Command Reference</h2>
+    <table>
+      <thead><tr><th>Command</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>npm run canonicalize</code></td><td>Converts <code>/input</code> HTML → <code>/canonical/theme.json</code></td></tr>
+        <tr><td><code>npm run adapt:platform</code></td><td>Generates template files and theme.json from canonical model</td></tr>
+        <tr><td><code>npm run export</code></td><td>Packages theme as <code>beto-theme.zip</code> and validates it via platform CLI</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>🧪 Testing & Validation Layer</h2>
+    <p>Ensure each stage performs correctly using modular scripts:</p>
+    <pre><code class="language-bash">npm run test:canonical   # Validate canonical schema
+npm run test:adapter     # Test template integrity and placeholders
+npm run test:export      # Check ZIP structure + platform CLI validation</code></pre>
+    <p>This guarantees output consistency and readiness for production deployment.</p>
+  </section>
+
+  <section>
+    <h2>📈 Phased Development Roadmap</h2>
+    <table>
+      <thead><tr><th>Phase</th><th>Goal</th><th>Duration</th><th>Deliverable</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Local Environment + HTML Parser</td><td>2 weeks</td><td>Clean HTML → Canonical JSON</td></tr>
+        <tr><td>2</td><td>Platform Adapter Base</td><td>3 weeks</td><td>Template export + theme.json</td></tr>
+        <tr><td>3</td><td>Preview & Mock Data System</td><td>2 weeks</td><td>Local live preview</td></tr>
+        <tr><td>4</td><td>Validation + Export Automation</td><td>2 weeks</td><td>ZIP + GitHub-ready</td></tr>
+        <tr><td>5</td><td>QA Tools & Business Pipeline</td><td>3 weeks</td><td>Marketplace-ready output</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>✅ End Result</h2>
+    <p>Beto Factory Core Edition enables any HTML design to be transformed into a validated, production-ready <strong>platform theme ZIP</strong>. The framework is modular, developer-friendly, and architected for seamless future expansion.</p>
+  </section>
+
+  <section>
+    <h2>🧩 Optional (Advanced) Add-Ons</h2>
+    <ul>
+      <li><strong>Auto-Documentation Generator:</strong> Implement tools like Typedoc or Docusaurus to automatically generate developer documentation.</li>
+      <li><strong>Error Handling Strategy:</strong> Handle JSON schema validation errors, adapter failures, and export issues with structured logs.</li>
+      <li><strong>Security & Licensing Notes:</strong> Include license metadata and client distribution terms in future releases.</li>
+      <li><strong>Localization Layer:</strong> Prepare multilingual template support for future internationalization.</li>
+    </ul>
+  </section>
+</main>
+</body>
+</html>

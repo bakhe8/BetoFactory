@@ -8,7 +8,8 @@
     "hero": {
       "type": "banner",
       "props": {
-        "title": "Beto Factory Demo"
+        "title": "Hero Banner",
+        "image": "images/hero.jpg"
       }
     },
     "product-grid": {

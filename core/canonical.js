@@ -1,20 +1,32 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { load } from 'cheerio';
 
 export function buildCanonical(html) {
-  const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
-  const title = titleMatch ? titleMatch[1].trim() : 'Untitled';
+  const $ = load(html);
+  const title = ($('title').text() || 'Untitled').trim();
+  const images = $('img')
+    .map((_, el) => $(el).attr('src'))
+    .get()
+    .filter(Boolean);
 
-  const images = Array.from(html.matchAll(/<img[^>]*src=["']([^"']+)["'][^>]*>/gi)).map(
-    (m) => m[1]
-  );
+  const heroSection = $('.hero');
+  const hero = {
+    type: 'banner',
+    props: {
+      title: heroSection.find('h1,h2,h3').first().text().trim() || title,
+      image: heroSection.find('img').first().attr('src') || images[0] || null
+    }
+  };
+
+  const hasGrid = $('.product-grid').length > 0;
 
   const model = {
     $schema: 'https://beto.factory/schema/canonical.json',
     layout: { header: 'default', footer: 'default' },
     components: {
-      hero: { type: 'banner', props: { title } },
-      'product-grid': { type: 'grid' }
+      hero,
+      ...(hasGrid ? { 'product-grid': { type: 'grid' } } : {})
     },
     assets: { images }
   };

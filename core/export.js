@@ -1,40 +1,38 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import archiver from 'archiver';
 
 const root = process.cwd();
 const srcDir = path.join(root, 'build', 'salla');
 const outZip = path.join(root, 'build', 'beto-theme.zip');
 
-function powershellCompress(src, dest) {
-  const psCmd = `Compress-Archive -Path "${src}${path.sep}*" -DestinationPath "${dest}" -Force`;
-  const res = spawnSync('powershell.exe', ['-NoProfile', '-Command', psCmd], {
-    stdio: 'inherit'
+async function zipWithArchiver(src, dest) {
+  await new Promise((resolve) => fs.mkdir(path.dirname(dest), { recursive: true }, resolve));
+  return await new Promise((resolve, reject) => {
+    const output = fs.createWriteStream(dest);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    output.on('close', () => resolve(true));
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') console.warn(err);
+      else reject(err);
+    });
+    archive.on('error', (err) => reject(err));
+    archive.pipe(output);
+    archive.directory(src, false);
+    archive.finalize();
   });
-  return res.status === 0;
 }
 
-function zipCli(src, dest) {
-  const res = spawnSync('zip', ['-r', dest, '.'], { cwd: src, stdio: 'inherit' });
-  return res.status === 0;
-}
-
-function main() {
+async function main() {
   if (!fs.existsSync(srcDir)) {
     console.error('Build directory missing. Run the adapter first.');
     process.exit(1);
   }
-  fs.mkdirSync(path.dirname(outZip), { recursive: true });
-  // Try PowerShell on Windows; fallback to zip CLI
-  let ok = false;
-  if (process.platform === 'win32') ok = powershellCompress(srcDir, outZip);
-  if (!ok) ok = zipCli(srcDir, outZip);
-  if (!ok) {
-    console.error('Failed to create ZIP. Ensure PowerShell Compress-Archive or zip is available.');
+  await zipWithArchiver(srcDir, outZip).catch((err) => {
+    console.error('Export failed:', err.message);
     process.exit(1);
-  }
+  });
   console.log(`✅ Exported ${path.relative(root, outZip)}`);
 }
 
 main();
-
