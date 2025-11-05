@@ -57,11 +57,11 @@ class SmartInputParser {
     return { ...parsedData, metadata: { sourceFile: fileName, processedAt: new Date().toISOString(), parserVersion: '2.1.0-smart' }, smartFeatures: { componentCount: parsedData.components?.length||0 } };
   }
   async copyAssets(src, dest){ const assetDirs=['assets','images','css','js','fonts']; for(const d of assetDirs){ const s=path.join(src,d); const t=path.join(dest,d); if (await FSHelpers.exists(s)){ try { await FSHelpers.copyFileSafe(s,t); this.logger.info(`Copied assets from ${s} to ${t}`);} catch(e){ this.logger.error(`Failed to copy assets from ${s}:`, e);} } } }
-  countComponents(results){ return results.reduce((count, r)=> count + ((r.components && typeof r.components==='object') ? Object.keys(r.components).length : 0), 0); }\r
-  countAssets(results){ return results.reduce((count, r)=> count + (r.assets && Array.isArray(r.assets.images) ? r.assets.images.length : 0), 0); }\r
-  countSections(results){ return results.reduce((count, r)=> count + (Array.isArray(r.sections) ? r.sections.length : 0), 0); }\r
-}\r
-\r
+  countComponents(results){ return results.reduce((count, r)=> count + ((r.components && typeof r.components==='object') ? Object.keys(r.components).length : 0), 0); }
+  countAssets(results){ return results.reduce((count, r)=> count + (r.assets && Array.isArray(r.assets.images) ? r.assets.images.length : 0), 0); }
+  countSections(results){ return results.reduce((count, r)=> count + (Array.isArray(r.sections) ? r.sections.length : 0), 0); }
+}
+
 module.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
 
 // Simple end-to-end bridge to existing adapter (fast mode)
@@ -115,6 +115,7 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
 
 
 
