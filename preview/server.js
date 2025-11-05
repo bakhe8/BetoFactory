@@ -1,6 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const canonicalFile = path.join(root, 'canonical', 'theme.json');
@@ -17,6 +18,14 @@ function readJSON(file) {
   } catch {
     return null;
   }
+}
+
+function ensureCanonical() {
+  if (!fs.existsSync(canonicalFile)) {
+    const res = spawnSync('node', ['core/input.js'], { stdio: 'inherit', cwd: root });
+    return res.status === 0 && fs.existsSync(canonicalFile);
+  }
+  return true;
 }
 
 function renderHTML(model) {
@@ -77,6 +86,7 @@ const server = http.createServer((req, res) => {
     return send(res, 200, body);
   }
   if (url.pathname === '/render') {
+    if (!fs.existsSync(canonicalFile)) ensureCanonical();
     const model = readJSON(canonicalFile);
     if (!model) return send(res, 200, '<p>No canonical model found. Run npm run canonicalize.</p>');
     return send(res, 200, renderHTML(model));
@@ -93,6 +103,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
+  ensureCanonical();
   console.log(`Preview running on http://localhost:${port}`);
 });
-
