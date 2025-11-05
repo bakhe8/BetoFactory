@@ -118,6 +118,16 @@ class SmartHTMLParser {
       }
     };
   }
+  extractHeaderNavigation($, el) {
+    try {
+      return el.find('nav a')
+        .map((i, a) => $(a).text().trim())
+        .get()
+        .filter(Boolean);
+    } catch (_) {
+      return [];
+    }
+  }
   extractFooter($) {
     const el = this.findFirstMatching($, ['footer', '.footer', '#footer', '[role="contentinfo"]']);
     if (!el) return null;
@@ -175,7 +185,12 @@ class SmartHTMLParser {
       return [];
     }
   }
-  async findHTMLFiles(folderPath) { const pattern = path.join(folderPath, '**/*.html'); return await glob(pattern, { ignore: ['**/node_modules/**', '**/.*'] }); }
+  async findHTMLFiles(folderPath) {
+    // Ensure forward slashes for glob patterns on Windows
+    const base = folderPath.replace(/\\/g, '/');
+    const pattern = base.endsWith('/') ? base + '**/*.html' : base + '/**/*.html';
+    return await glob(pattern, { ignore: ['**/node_modules/**', '**/.*'] });
+  }
   async copyAssets(sourcePath, destPath) {
     const assetDirs = ['assets', 'images', 'img', 'css', 'js', 'fonts'];
     let count = 0;
@@ -208,4 +223,3 @@ if (require.main === module) {
     })
     .catch(err => { console.error('💥 Fatal error:', err); process.exit(1); });
 }
-
