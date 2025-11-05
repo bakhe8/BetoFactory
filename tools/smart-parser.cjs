@@ -75,7 +75,6 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
     }
   }
   const steps = [ ['node', ['core/input.js']], ['node', ['core/adapter-salla.js']], ['node', ['core/assets.js']], ['node', ['core/locales.js']], ['node', ['core/export.js']] ];
-  for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(`Step failed: ${cmd} ${args.join(' ')}`); } }
   for (const [cmd, args] of steps){
     const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' });
     if (r.status !== 0){
@@ -96,7 +95,7 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
     if (this.logger.warn) this.logger.warn('Could not copy namespaced ZIP: ' + e.message);
   }
 
-// If run directly: process specified folder or all subfolders under smart-input/input
+  }
 if (require.main === module){
   (async () => {
     const parser = new SmartInputParser();
