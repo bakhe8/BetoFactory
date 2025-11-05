@@ -59,7 +59,13 @@ function main() {
   const indexTwig = `{% extends "layouts/master.twig" %}
 {% block title %}{{ settings.hero_title | default('${defaultHeroTitle.replace(/'/g, "''")}') }} — Home{% endblock %}
 {% block content %}
-  {% include "components/sections/advanced-hero.twig" %}
+  {% if settings.feature_tier in ['advanced','premium'] %}
+    {% include "components/sections/advanced-hero.twig" %}
+    {% include "components/sections/configurable-banner.twig" %}
+  {% endif %}
+  {% if settings.feature_tier == 'premium' %}
+    {% include "components/sections/testimonials.twig" %}
+  {% endif %}
   <section class="hero">
     <h2>{{ settings.hero_title | default(hero.title | default('${defaultHeroTitle.replace(/'/g, "''")}')) }}</h2>
     {% set img = settings.hero_image | default(hero.image | default('')) %}
@@ -177,6 +183,67 @@ function main() {
 {% endschema %}`;
   fs.writeFileSync(path.join(compSections, 'advanced-hero.twig'), advancedHeroTwig, 'utf8');
 
+  // Configurable Banner section
+  const bannerTwig = `<section class="configurable-banner" style="background: {{ section.settings.background_color | default('#0046FF') }}">
+  <div class="container">
+    {% if section.settings.background_image %}
+      <img src="{{ section.settings.background_image }}" alt="" />
+    {% endif %}
+    <h2 style="color: {{ section.settings.text_color | default('#fff') }}">{{ section.settings.heading | default('Welcome') }}</h2>
+    {% if section.settings.subheading %}<p>{{ section.settings.subheading }}</p>{% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Configurable Banner",
+  "settings": [
+    {"type": "image_picker", "id": "background_image", "label": "Background Image"},
+    {"type": "color", "id": "background_color", "label": "Background Color", "value": "#0046FF"},
+    {"type": "color", "id": "text_color", "label": "Text Color", "value": "#ffffff"},
+    {"type": "text", "id": "heading", "label": "Heading", "value": "Welcome"},
+    {"type": "text", "id": "subheading", "label": "Subheading"}
+  ]
+}
+{% endschema %}`;
+  fs.writeFileSync(path.join(compSections, 'configurable-banner.twig'), bannerTwig, 'utf8');
+
+  // Testimonials section
+  const testimonialsTwig = `<section class="testimonials">
+  <div class="container">
+    {% if section.blocks is defined and section.blocks|length %}
+      <div class="items">
+        {% for block in section.blocks %}
+          <blockquote class="item">
+            <p>“{{ block.settings.quote | default('Great store!') }}”</p>
+            <footer>— {{ block.settings.author | default('Happy Customer') }}</footer>
+          </blockquote>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No testimonials yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Testimonials",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {"type": "text", "id": "quote", "label": "Quote"},
+        {"type": "text", "id": "author", "label": "Author"}
+      ]
+    }
+  ]
+}
+{% endschema %}`;
+  fs.writeFileSync(path.join(compSections, 'testimonials.twig'), testimonialsTwig, 'utf8');
+
   // Predefined pages (scaffold)
   const ensure = (p) => fs.mkdirSync(p, { recursive: true });
   const writePage = (relPath, content) => {
@@ -265,6 +332,11 @@ function main() {
         value: Boolean(model.components && model.components['product-grid'])
       },
       { type: 'range', id: 'products_per_page', label: 'Products per page', min: 8, max: 24, step: 4, value: 16 },
+      { type: 'items', id: 'feature_tier', label: 'Feature Tier', selected: [{"label":"Basic","value":"basic"}], options: [
+        {"label":"Basic","value":"basic"},
+        {"label":"Advanced","value":"advanced"},
+        {"label":"Premium","value":"premium"}
+      ] },
       { type: 'boolean', id: 'interactive_product', label: 'Enable interactive product demo', value: Boolean(model.components && model.components['interactive-product']) },
       { type: 'boolean', id: 'show_variation_swatches', label: 'Show variation swatches', value: true },
       { type: 'boolean', id: 'quick_ajax_add', label: 'Quick AJAX add-to-cart', value: true },

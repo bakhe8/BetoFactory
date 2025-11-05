@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const canonicalFile = path.join(root, 'canonical', 'theme.json');
+const sectionsDir = path.join(root, 'build', 'salla', 'views', 'components', 'sections');
 const port = process.env.PORT ? Number(process.env.PORT) : 5173;
 
 function send(res, status, content, type = 'text/html') {
@@ -84,6 +85,42 @@ const server = http.createServer((req, res) => {
     <p>Status: ${model ? 'canonical exists' : 'canonical missing — run npm run canonicalize'}</p>
     </body></html>`;
     return send(res, 200, body);
+  }
+  if (url.pathname === '/sections') {
+    // Render basic previews for schema-driven sections by reading their schema JSON blocks
+    try {
+      const items = fs.existsSync(sectionsDir)
+        ? fs.readdirSync(sectionsDir).filter((f) => f.endsWith('.twig'))
+        : [];
+      const cards = items.map((f) => {
+        const src = fs.readFileSync(path.join(sectionsDir, f), 'utf8');
+        const m = src.match(/\{\%\s*schema\s*\%\}([\s\S]*?)\{\%\s*endschema\s*\%\}/);
+        let meta = null;
+        if (m) {
+          try { meta = JSON.parse(m[1]); } catch {}
+        }
+        const name = (meta && meta.name) || f;
+        let preview = '';
+        if (f.includes('advanced-hero')) {
+          const title = 'Advanced Hero';
+          preview = `<section style="padding:16px;background:#eef"><h3>${title}</h3><div style="height:100px;background:#ccc"></div></section>`;
+        } else if (f.includes('configurable-banner')) {
+          preview = `<section style="padding:16px;background:#0046FF;color:#fff"><h3>Banner</h3><p>Heading/Subheading</p></section>`;
+        } else if (f.includes('testimonials')) {
+          preview = `<section style="padding:16px"><blockquote>“Great store!” — Customer</blockquote></section>`;
+        }
+        return `<div style="border:1px solid #ddd;border-radius:8px;padding:12px;margin:10px 0"><strong>${name}</strong>${preview}</div>`;
+      }).join('\n');
+      const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Sections Preview</title>
+      <style>body{font-family:system-ui;margin:24px;max-width:900px}a{margin-right:8px;display:inline-block}</style></head><body>
+      <h1>Schema-Driven Sections</h1>
+      <nav><a href="/">Home</a></nav>
+      ${cards || '<p>No sections found. Run npm run build.</p>'}
+      </body></html>`;
+      return send(res, 200, html);
+    } catch (e) {
+      return send(res, 500, 'Error reading sections');
+    }
   }
   if (url.pathname === '/render') {
     if (!fs.existsSync(canonicalFile)) ensureCanonical();
