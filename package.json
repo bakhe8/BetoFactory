@@ -1,0 +1,15 @@
+{
+  "name": "beto-factory",
+  "version": "0.1.0",
+  "description": "Beto Factory — Core Edition (Salla-only)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "canonicalize": "node core/input.js",
+    "adapt:salla": "node core/adapter-salla.js",
+    "export": "node core/export.js",
+    "test:export": "node tests/test-export.js",
+    "build": "npm run canonicalize && npm run adapt:salla && npm run export"
+  }
+}
+

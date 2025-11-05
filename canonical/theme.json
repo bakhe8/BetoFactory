@@ -1,0 +1,23 @@
+{
+  "$schema": "https://beto.factory/schema/canonical.json",
+  "layout": {
+    "header": "default",
+    "footer": "default"
+  },
+  "components": {
+    "hero": {
+      "type": "banner",
+      "props": {
+        "title": "Beto Factory Demo"
+      }
+    },
+    "product-grid": {
+      "type": "grid"
+    }
+  },
+  "assets": {
+    "images": [
+      "images/hero.jpg"
+    ]
+  }
+}
