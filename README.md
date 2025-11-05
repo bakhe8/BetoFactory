@@ -1,4 +1,4 @@
-# Beto Factory — Core Edition (Salla Only)
+﻿# Beto Factory — Core Edition (Salla Only)
 
 Local theme manufacturing flow that converts raw HTML into a canonical JSON model, adapts it to Salla (Twig), and exports a ready-to-upload ZIP.
 
@@ -141,3 +141,4 @@ For rapid iteration, you can use the Smart Input fast path which watches and pro
 1) Create a folder: `smart-input/input/my-theme/` and drop `.html` (and optional `assets/`, `images/`).
 2) Run once: `npm run smart-parse my-theme` or watch: `npm run smart-watch`.
 3) Outputs: canonical JSON in `smart-input/canonical/my-theme/` and theme ZIP at `build/beto-theme.zip`.
+
