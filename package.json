@@ -36,8 +36,8 @@
                     "watch":  "npm run watch:input",
                     "dev":  "npm run watch:input",
                     "process-all":  "npm run parse \u0026\u0026 npm run validate",
-                    "smart-parse":  "node tools/smart-parser.js",
-                    "smart-watch":  "node tools/simple-watcher.js",
+                    "smart-parse": "node tools/smart-parser.cjs",
+                    "smart-watch": "node tools/simple-watcher.cjs",
                     "smart-init":  "node tools/smart-init.js",
                     "smart":  "node src/cli/minimal-cli.js"
                 },
@@ -61,3 +61,4 @@
                             "prettier":  "^3.6.2"
                         }
 }
+
