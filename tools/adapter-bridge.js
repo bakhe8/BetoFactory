@@ -1,4 +1,4 @@
-const fs = require('fs-extra');
+﻿const fs = require('fs-extra');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
@@ -32,4 +32,15 @@ class AdapterBridge {
 }
 
 module.exports = AdapterBridge;
+
+
+
+// CLI usage: node tools/adapter-bridge.js <folderName>
+if (require.main === module){
+  const name = process.argv[2];
+  if (!name) { console.error('Usage: node tools/adapter-bridge.js <folderName>'); process.exit(1);} 
+  AdapterBridge.generateFromSmartFolder(name)
+    .then(()=> { console.log('✅ Adapter generation complete'); process.exit(0); })
+    .catch((e)=> { console.error('❌ Adapter generation failed:', e.message); process.exit(1); });
+}
 
