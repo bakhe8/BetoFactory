@@ -2,6 +2,13 @@ node_modules/
 build/
 canonical/
 logs/
+smart-input/canonical/
+smart-input/processing/
+dist/
 *.zip
 
 .ref/
+
+# OS junk
+.DS_Store
+Thumbs.db

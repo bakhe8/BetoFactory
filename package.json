@@ -32,7 +32,7 @@
     "validate:salla": "node core/validate-salla.js",
     "parse": "node tools/parser.cjs",
     "watch:input": "node tools/folderWatcher.cjs",
-    "validate": "node tools/schemaValidator.cjs",
+    "validate": "node tools/schema-validator.js",
     "watch": "npm run watch:input",
     "dev": "npm run watch:input",
     "process-all": "npm run parse && npm run validate"

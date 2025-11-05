@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const FSHelpers = require('../core/utils/fs.cjs');
 const { Logger } = require('./lib/log');
 const { HTMLParser } = require('../src/parsers/html-parser');
@@ -22,10 +23,11 @@ class SmartInputParser {
     await FSHelpers.moveSafe(inputPath, processingPath, { overwrite: true });
     try {
       const res = await this.parseFolder(processingPath, outputPath, folderName);
+      await this._generateSallaTheme(processingPath);
       await FSHelpers.removeSafe(processingPath);
       this.logger.success(`Completed processing for folder: ${folderName}`);
       return res;
-    } catch (e){ await FSHelpers.moveSafe(processingPath, inputPath, { overwrite: true }); this.logger.error(`Failed to process folder ${folderName}:`, e); throw e; }
+    } catch (e){ await FSHelpers.moveSafe(processingPath, inputPath, { overwrite: true }).catch(()=>{}); this.logger.error(`Failed to process folder ${folderName}:`, e); throw e; }
   }
   async parseFolder(processingPath, outputPath, folderName){
     const files = await fs.readdir(processingPath);
@@ -53,3 +55,38 @@ class SmartInputParser {
 
 module.exports = { SmartInputParser };
 
+// Simple end-to-end bridge to existing adapter (fast mode)
+SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
+  const files = await fs.readdir(processingPath);
+  let mainHtml = files.find(f=> f.toLowerCase()==='index.html');
+  if (!mainHtml){ mainHtml = files.find(f=> f.toLowerCase().endsWith('.html')); }
+  if (!mainHtml){ this.logger.warn('No HTML file found for adapter generation'); return; }
+  const srcHtml = path.join(processingPath, mainHtml);
+  const rootInputDir = path.join(process.cwd(), 'input');
+  const rootAssetsDir = path.join(rootInputDir, 'assets');
+  await FSHelpers.ensureDir(rootInputDir);
+  await fs.copy(srcHtml, path.join(rootInputDir, 'index.html'));
+  for (const d of ['assets','images']){
+    const p = path.join(processingPath, d);
+    if (await FSHelpers.exists(p)){
+      const dest = d === 'assets' ? rootAssetsDir : path.join(rootInputDir, d);
+      await FSHelpers.ensureDir(dest);
+      await fs.copy(p, dest, { overwrite: true }).catch(()=>{});
+    }
+  }
+  const steps = [ ['node', ['core/input.js']], ['node', ['core/adapter-salla.js']], ['node', ['core/assets.js']], ['node', ['core/locales.js']], ['node', ['core/export.js']] ];
+  for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(`Step failed: ${cmd} ${args.join(' ')}`); } }
+  this.logger.success('Salla theme generated via existing adapter');
+}
+
+// If run directly: process specified folder or all subfolders under smart-input/input
+if (require.main === module){
+  (async () => {
+    const parser = new SmartInputParser();
+    const folderArg = process.argv[2];
+    if (folderArg){ await parser.processDesignFolder(folderArg); process.exit(0); }
+    const base = path.join('smart-input','input'); await fs.ensureDir(base); const items = await fs.readdir(base);
+    for (const item of items){ const st = await fs.stat(path.join(base,item)).catch(()=>null); if (st && st.isDirectory()){ try{ await parser.processDesignFolder(item);}catch(e){ /* continue */ } } }
+    process.exit(0);
+  })();
+}
