@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 import { load } from 'cheerio';
 
@@ -20,8 +20,8 @@ export function buildCanonical(html) {
   };
 
   const hasGrid = $('.product-grid').length > 0;
-
-  const model = {
+  const styles = link[rel=\"stylesheet\"].map((_,el)=> .attr('href')).get().filter(Boolean);
+  const scripts = script[src].map((_,el)=> .attr('src')).get().filter(Boolean);  const model = {
     $schema: 'https://beto.factory/schema/canonical.json',
     layout: { header: 'default', footer: 'default' },
     components: {
