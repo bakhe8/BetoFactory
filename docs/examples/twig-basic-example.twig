@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}Demo{% endblock %}</title>
+</head>
+<body>
+{% set lion = 'King' %}
+<p>Lion: {{ lion }}</p>
+
+<h3>Products</h3>
+<ul>
+  {% for product in products %}
+    <li>
+      {{ product.name }} — {{ product.price }}
+      {% if product.has_sale %}(on sale){% endif %}
+    </li>
+  {% endfor %}
+  {% if products|length == 0 %}
+    <li>No products</li>
+  {% endif %}
+  </ul>
+
+<footer>
+  <small>{{ "now"|date("Y") }}</small>
+  {{ block('footer') is defined ? block('footer') }}
+  {% include "components/footer/footer.twig" %}
+  </footer>
+</body>
+</html>
+

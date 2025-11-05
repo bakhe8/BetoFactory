@@ -82,3 +82,9 @@ Schema: `schemas/canonical.schema.json`
 - `tests/test-canonical.js` — JSON Schema validation.
 - `tests/test-adapter.js` — Ensures adapter outputs exist.
 - `tests/test-export.js` — Ensures the ZIP exists.
+
+## Documentation
+- `docs/DEVELOPER_KICKOFF_GUIDE.md` — Project overview and goals
+- `docs/roadmap.html` — Roadmap and architecture
+- `docs/TWIG_BASICS.md` — Twig basics for Twilight/Salla
+- `docs/examples/twig-basic-example.twig` — Twig example snippet
