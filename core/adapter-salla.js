@@ -152,6 +152,16 @@ function main() {
   fs.writeFileSync(path.join(compProduct, 'card.twig'), productCardTwig, 'utf8');
   fs.writeFileSync(path.join(compProduct, 'grid.twig'), productGridTwig, 'utf8');
 
+  // Product essentials: donation, offer, similar-products
+  const donationTwig = `{% hook 'component:product.donation.start' %}\n{% if product and product.donation %}\n  {% if product.donation.target_message %}\n    <span>{{ product.donation.target_message }}</span>\n  {% else %}\n    <div class=\"donation-amounts\">\n      <span>{{ product.donation.collected_amount|money }}</span>\n      <span>{{ product.donation.target_amount|money }}</span>\n    </div>\n    <div class=\"donation-progress\">\n      <div class=\"bar\" style=\"width: {{ product.donation.target_percent }}%\"></div>\n    </div>\n    {% if product.donation.target_end_date %}\n      <small class=\"donation-end\">{{ product.donation.target_end_date|date }}</small>\n    {% endif %}\n  {% endif %}\n{% endif %}\n{% hook 'component:product.donation.end' %}`;
+  fs.writeFileSync(path.join(compProduct, 'donation-progress-bar.twig'), donationTwig, 'utf8');
+
+  const offerTwig = `{% hook 'component:product.offer.start' %}\n<div class=\"product-offers\">\n  {% if offer %}\n    <p>{{ offer.name }}: {{ offer.description|raw }}</p>\n    {% if offer.products is defined and offer.products|length %}\n      <div class=\"offers-products\">\n        <div class=\"slider\">\n          {% for product in offer.products %}\n            <div class=\"slide\">{% include \"components/product/card.twig\" with { product: product } %}</div>\n          {% endfor %}\n        </div>\n      </div>\n    {% else %}\n      {% if offer.categories is defined %}\n        {% for category in offer.categories %}\n          <a href=\"{{ category.url }}\"><span>{{ category.name }}</span></a>\n        {% endfor %}\n      {% endif %}\n    {% endif %}\n  {% endif %}\n</div>\n{% hook 'component:product.offer.end' %}`;
+  fs.writeFileSync(path.join(compProduct, 'offer.twig'), offerTwig, 'utf8');
+
+  const similarTwig = `{% hook 'component:product.similar.start' %}\n{% if products is defined and products|length %}\n  <div class=\"similar-products\">\n    <h3>{{ 'Similar Products' }}</h3>\n    <div class=\"grid\">\n      {% for product in products %}\n        <div class=\"item\">{% include \"components/product/card.twig\" with { product: product } %}</div>\n      {% endfor %}\n    </div>\n  </div>\n{% endif %}\n{% hook 'component:product.similar.end' %}`;
+  fs.writeFileSync(path.join(compProduct, 'similar-products.twig'), similarTwig, 'utf8');
+
   // Advanced interactive components
   const galleryTwig = `{% hook 'component:advanced.product-gallery.start' %}\n<div class="product-gallery">\n  {% if product and product.images is defined %}\n    <div class="gallery">\n      {% for image in product.images %}\n        <img src="{{ image }}" alt="{{ product.name | default('') }}" />\n      {% endfor %}\n    </div>\n  {% endif %}\n</div>\n{% hook 'component:advanced.product-gallery.end' %}`;
   const swatchesTwig = `{% hook 'component:advanced.variation-swatches.start' %}\n<div class="variation-swatches">\n  {% if product and product.variations is defined %}\n    {% for v in product.variations %}\n      <button class="swatch" data-variant-id="{{ v.id }}">{{ v.name }}</button>\n    {% endfor %}\n  {% endif %}\n</div>\n{% hook 'component:advanced.variation-swatches.end' %}`;
@@ -301,8 +311,20 @@ function main() {
   writePage('product/index.twig', page('Products', `  {% hook 'product:index.items.start' %}
   <div class="product-listing">{% include "components/product/grid.twig" %}</div>
   {% hook 'product:index.items.end' %}`));
-  // Single product
+  // Single product (with essentials + advanced gated)
   writePage('product/single.twig', page('Product', `  <article class="product-single">
+    {% if settings.show_donation_bar | default(false) and product is defined and product.donation is defined %}
+      {% include "components/product/donation-progress-bar.twig" %}
+    {% endif %}
+
+    {% if settings.show_offers | default(true) and offer is defined %}
+      {% include "components/product/offer.twig" %}
+    {% endif %}
+
+    {% if settings.show_similar_products | default(true) and products is defined %}
+      {% include "components/product/similar-products.twig" %}
+    {% endif %}
+
     {% if settings.feature_tier in ['advanced','premium'] %}
       {% include "components/advanced/product-gallery.twig" %}
       {% if settings.show_variation_swatches | default(true) %}
@@ -387,6 +409,9 @@ function main() {
         value: Boolean(model.components && model.components['product-grid'])
       },
       { type: 'range', id: 'products_per_page', label: 'Products per page', min: 8, max: 24, step: 4, value: 16 },
+      { type: 'boolean', id: 'show_donation_bar', label: 'Show donation progress bar', value: false },
+      { type: 'boolean', id: 'show_offers', label: 'Show offers', value: true },
+      { type: 'boolean', id: 'show_similar_products', label: 'Show similar products', value: true },
       { type: 'items', id: 'feature_tier', label: 'Feature Tier', selected: [{"label": "${'${'}chosenTier.charAt(0).toUpperCase() + chosenTier.slice(1){'}'}", "value": "${'${'}chosenTier{'}'}"}], options: [
         {"label":"Basic","value":"basic"},
         {"label":"Advanced","value":"advanced"},

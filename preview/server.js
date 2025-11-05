@@ -126,6 +126,36 @@ const server = http.createServer((req, res) => {
       return send(res, 500, 'Error reading sections');
     }
   }
+  if (url.pathname === '/product-demo') {
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Product Demo</title>
+    <style>body{font-family:system-ui;margin:24px;max-width:900px}.card{border:1px solid #ddd;padding:8px;margin:4px;border-radius:6px}</style></head><body>
+    <h1>Product Components Demo (Mock)</h1>
+    <section class="donation card">
+      <h3>Donation Progress</h3>
+      <div><strong>Collected:</strong> 5,000</div>
+      <div><strong>Target:</strong> 10,000</div>
+      <div style="background:#eee;height:8px;border-radius:6px"><div style="width:50%;background:#0a5;height:8px;border-radius:6px"></div></div>
+      <small>Ends: 2025-12-31</small>
+    </section>
+    <section class="offers card">
+      <h3>Offers</h3>
+      <div class="grid">
+        <div class="card">Offer Product #1</div>
+        <div class="card">Offer Product #2</div>
+      </div>
+    </section>
+    <section class="similar card">
+      <h3>Similar Products</h3>
+      <div class="grid">
+        <div class="card">Similar #1</div>
+        <div class="card">Similar #2</div>
+        <div class="card">Similar #3</div>
+      </div>
+    </section>
+    <p><a href="/">Back</a></p>
+    </body></html>`;
+    return send(res, 200, html);
+  }
   if (url.pathname === '/render') {
     if (!fs.existsSync(canonicalFile)) ensureCanonical();
     const model = readJSON(canonicalFile);

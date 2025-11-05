@@ -15,6 +15,10 @@ const twigHeader = path.join(dir, 'views', 'components', 'header', 'header.twig'
 const twigFooter = path.join(dir, 'views', 'components', 'footer', 'footer.twig');
 const twigProductCard = path.join(dir, 'views', 'components', 'product', 'card.twig');
 const twigProductGrid = path.join(dir, 'views', 'components', 'product', 'grid.twig');
+const twigDonation = path.join(dir, 'views', 'components', 'product', 'donation-progress-bar.twig');
+const twigOffer = path.join(dir, 'views', 'components', 'product', 'offer.twig');
+const twigSimilar = path.join(dir, 'views', 'components', 'product', 'similar-products.twig');
+const twigProductSingle = path.join(dir, 'views', 'pages', 'product', 'single.twig');
 const twigAdvGallery = path.join(dir, 'views', 'components', 'advanced', 'product-gallery.twig');
 const twigAdvSwatches = path.join(dir, 'views', 'components', 'advanced', 'variation-swatches.twig');
 const twigAdvQuickAdd = path.join(dir, 'views', 'components', 'advanced', 'quick-add.twig');
@@ -35,6 +39,15 @@ if (!fs.existsSync(twigHeader)) throw new Error('views/components/header/header.
 if (!fs.existsSync(twigFooter)) throw new Error('views/components/footer/footer.twig missing');
 if (!fs.existsSync(twigProductCard)) throw new Error('views/components/product/card.twig missing');
 if (!fs.existsSync(twigProductGrid)) throw new Error('views/components/product/grid.twig missing');
+if (!fs.existsSync(twigDonation)) throw new Error('views/components/product/donation-progress-bar.twig missing');
+if (!fs.existsSync(twigOffer)) throw new Error('views/components/product/offer.twig missing');
+if (!fs.existsSync(twigSimilar)) throw new Error('views/components/product/similar-products.twig missing');
+if (!fs.existsSync(twigProductSingle)) throw new Error('views/pages/product/single.twig missing');
+// Ensure product single includes components conditionally
+const productSingle = fs.readFileSync(twigProductSingle, 'utf8');
+['donation-progress-bar','offer','similar-products'].forEach((name) => {
+  if (!productSingle.includes(`components/product/${name}.twig`)) throw new Error(`product/single.twig missing include: ${name}`);
+});
 // Check product index hooks
 const grid = fs.readFileSync(twigProductGrid, 'utf8');
 if (!grid.includes("{% hook 'product:index.items.start' %}")) throw new Error('product:index.items.start hook missing');
