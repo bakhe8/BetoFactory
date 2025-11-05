@@ -26,7 +26,7 @@
         "type": "object",
         "required": ["type", "id"],
         "properties": {
-          "type": { "type": "string", "enum": ["text", "image", "boolean", "items", "static"] },
+          "type": { "type": "string", "enum": ["text", "image", "boolean", "items", "static", "range", "color", "image_picker"] },
           "id": { "type": "string" },
           "label": { "type": ["string", "null"] },
           "format": { "type": ["string", "null"] },
@@ -51,4 +51,3 @@
   },
   "additionalProperties": true
 }
-

@@ -24,7 +24,7 @@
     "test:export": "node tests/test-export.js",
     "test:salla-cli": "npm run salla:validate && npm run salla:lint",
     "test:twilight": "node tests/test-twilight.js",
-    "test": "npm run test:canonical && npm run test:adapter && npm run test:twilight && npm run test:export",
+    "test": "npm run test:canonical && npm run test:adapter && npm run test:twilight && node tests/test-section-schema.js && npm run test:export",
     "lint": "eslint .",
     "format": "prettier -w .",
     "preview": "node preview/server.js",
@@ -43,4 +43,5 @@
     "prettier": "^3.6.2"
   }
 }
+
 

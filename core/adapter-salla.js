@@ -22,11 +22,13 @@ function main() {
   const viewsComponents = path.join(outDir, 'views', 'components');
   const compProduct = path.join(viewsComponents, 'product');
   const compAdvanced = path.join(viewsComponents, 'advanced');
+  const compSections = path.join(viewsComponents, 'sections');
   ensureDir(viewsLayouts);
   ensureDir(viewsPages);
   ensureDir(viewsComponents);
   ensureDir(compProduct);
   ensureDir(compAdvanced);
+  ensureDir(compSections);
 
   const defaultHeroTitle = model?.components?.hero?.props?.title || 'Welcome';
   const defaultHeroImage = model?.components?.hero?.props?.image || '';
@@ -57,6 +59,7 @@ function main() {
   const indexTwig = `{% extends "layouts/master.twig" %}
 {% block title %}{{ settings.hero_title | default('${defaultHeroTitle.replace(/'/g, "''")}') }} — Home{% endblock %}
 {% block content %}
+  {% include "components/sections/advanced-hero.twig" %}
   <section class="hero">
     <h2>{{ settings.hero_title | default(hero.title | default('${defaultHeroTitle.replace(/'/g, "''")}')) }}</h2>
     {% set img = settings.hero_image | default(hero.image | default('')) %}
@@ -149,6 +152,31 @@ function main() {
   fs.writeFileSync(path.join(compAdvanced, 'variation-swatches.twig'), swatchesTwig, 'utf8');
   fs.writeFileSync(path.join(compAdvanced, 'quick-add.twig'), quickAddTwig, 'utf8');
 
+  // Section with in-template configuration schema block
+  const advancedHeroTwig = `<section class="advanced-hero" style="background-image: url({{ section.settings.background_image }})">
+  <h1 style="color: {{ section.settings.text_color | default('#11224E') }}">{{ section.settings.title | default('Advanced Hero') }}</h1>
+  {% if section.blocks is defined %}
+    {% for block in section.blocks %}
+      <div class="block-{{ block.type }}">{{ block.settings.content | default('') }}</div>
+    {% endfor %}
+  {% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Advanced Hero",
+  "settings": [
+    { "type": "image_picker", "id": "background_image", "label": "Background Image" },
+    { "type": "text", "id": "title", "label": "Title", "value": "Advanced Hero" },
+    { "type": "color", "id": "text_color", "label": "Text Color", "value": "#11224E" }
+  ],
+  "blocks": [
+    { "type": "text", "name": "Text Block", "settings": [ { "type": "text", "id": "content", "label": "Content" } ] }
+  ]
+}
+{% endschema %}`;
+  fs.writeFileSync(path.join(compSections, 'advanced-hero.twig'), advancedHeroTwig, 'utf8');
+
   // Predefined pages (scaffold)
   const ensure = (p) => fs.mkdirSync(p, { recursive: true });
   const writePage = (relPath, content) => {
@@ -236,6 +264,7 @@ function main() {
         label: 'Show products grid',
         value: Boolean(model.components && model.components['product-grid'])
       },
+      { type: 'range', id: 'products_per_page', label: 'Products per page', min: 8, max: 24, step: 4, value: 16 },
       { type: 'boolean', id: 'interactive_product', label: 'Enable interactive product demo', value: Boolean(model.components && model.components['interactive-product']) },
       { type: 'boolean', id: 'show_variation_swatches', label: 'Show variation swatches', value: true },
       { type: 'boolean', id: 'quick_ajax_add', label: 'Quick AJAX add-to-cart', value: true },
