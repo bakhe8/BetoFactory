@@ -9,9 +9,9 @@ class FolderWatcher {
     this.parserScript = 'tools/parser.cjs';
     this.isProcessing = false;
     this.pendingFolders = new Set();
-    this.setupLogging();
+    const { createLogger } = require('./lib/log.js'); this.logger = createLogger('WATCHER', 'logs/watcher.log');
   }
-  setupLogging() { fs.ensureDirSync('logs'); }
+  // logger handles dir ensure
   log(msg) {
     const ts = new Date().toISOString();
     const line = `[${ts}] [WATCHER] ${msg}\n`;
@@ -19,7 +19,7 @@ class FolderWatcher {
     console.log(`👀 ${msg}`);
   }
   start() {
-    this.log(`Starting folder watcher on: ${path.resolve(this.watchPath)}`);
+    this.logger.info(`Starting folder watcher on: ${path.resolve(this.watchPath)}`);
     fs.ensureDirSync(this.watchPath);
     const watcher = chokidar.watch(this.watchPath, {
       persistent: true,
@@ -30,19 +30,19 @@ class FolderWatcher {
     });
     watcher
       .on('addDir', this.handleNewFolder.bind(this))
-      .on('ready', () => this.log('Watcher is ready and monitoring for new folders'))
-      .on('error', (err) => this.log(`Watcher error: ${err}`));
-    process.on('SIGINT', () => { this.log('Shutting down watcher...'); watcher.close().then(() => process.exit(0)); });
+      .on('ready', () => this.logger.info('Watcher is ready and monitoring for new folders'))
+      .on('error', (err) => this.logger.info(`Watcher error: ${err}`));
+    process.on('SIGINT', () => { this.logger.info('Shutting down watcher...'); watcher.close().then(() => process.exit(0)); });
     return watcher;
   }
   handleNewFolder(folderPath) {
     const folderName = path.basename(folderPath);
     if (path.dirname(folderPath) !== path.resolve(this.watchPath)) return;
     if (folderName.startsWith('.') || folderName === 'node_modules') return;
-    this.log(`📦 New folder detected: ${folderName}`);
+    this.logger.info(`📦 New folder detected: ${folderName}`);
     this.scheduleProcessing(folderName);
   }
-  scheduleProcessing(folderName) { this.pendingFolders.add(folderName); if (!this.isProcessing) this.processPendingFolders(); else this.log(`⏳ Folder queued: ${folderName}`); }
+  scheduleProcessing(folderName) { this.pendingFolders.add(folderName); if (!this.isProcessing) this.processPendingFolders(); else this.logger.info(`⏳ Folder queued: ${folderName}`); }
   async processPendingFolders() {
     if (this.isProcessing || this.pendingFolders.size === 0) return;
     this.isProcessing = true;
@@ -56,19 +56,20 @@ class FolderWatcher {
   }
   processSingleFolder(folderName) {
     return new Promise((resolve, reject) => {
-      this.log(`🔄 Processing folder: ${folderName}`);
+      this.logger.info(`🔄 Processing folder: ${folderName}`);
       const proc = exec(`node ${this.parserScript} ${folderName}`, { cwd: process.cwd(), timeout: 300000 });
       let stderr = '';
       proc.stderr.on('data', d => { stderr += d.toString(); });
       proc.on('close', (code) => {
-        if (code === 0) { this.log(`✅ Successfully processed: ${folderName}`); resolve(); }
-        else { this.log(`❌ Failed to process ${folderName}: ${code}`); if (stderr) this.log(`STDERR: ${stderr}`); reject(new Error(`exit ${code}`)); }
+        if (code === 0) { this.logger.info(`✅ Successfully processed: ${folderName}`); resolve(); }
+        else { this.logger.info(`❌ Failed to process ${folderName}: ${code}`); if (stderr) this.logger.info(`STDERR: ${stderr}`); reject(new Error(`exit ${code}`)); }
       });
-      proc.on('error', (err) => { this.log(`❌ Process error for ${folderName}: ${err.message}`); reject(err); });
+      proc.on('error', (err) => { this.logger.info(`❌ Process error for ${folderName}: ${err.message}`); reject(err); });
     });
   }
 }
 
 if (require.main === module) { new FolderWatcher().start(); }
 module.exports = FolderWatcher;
+
 
