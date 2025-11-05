@@ -20,15 +20,22 @@ export function buildCanonical(html) {
   };
 
   const hasGrid = $('.product-grid').length > 0;
-  const styles = link[rel=\"stylesheet\"].map((_,el)=> .attr('href')).get().filter(Boolean);
-  const scripts = script[src].map((_,el)=> .attr('src')).get().filter(Boolean);  const model = {
+  const styles = $('link[rel="stylesheet"]').map((_, el) => $(el).attr('href')).get().filter(Boolean);
+  const scripts = $('script[src]').map((_, el) => $(el).attr('src')).get().filter(Boolean);
+
+  const model = {
     $schema: 'https://beto.factory/schema/canonical.json',
+    metadata: { title },
     layout: { header: 'default', footer: 'default' },
     components: {
       hero,
       ...(hasGrid ? { 'product-grid': { type: 'grid' } } : {})
     },
-    assets: { images }
+    sections: [
+      { type: 'hero', settings: hero.props },
+      ...(hasGrid ? [{ type: 'product-grid', settings: {} }] : [])
+    ],
+    assets: { images, styles, scripts }
   };
 
   return model;
