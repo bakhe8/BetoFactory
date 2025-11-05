@@ -1,0 +1,43 @@
+{
+  "watchDirectories": ["smart-input/input"],
+  "filePatterns": {
+    "html": ["*.html", "*.htm"],
+    "assets": ["assets/**", "images/**", "css/**", "js/**", "fonts/**"]
+  },
+  "parsing": {
+    "concurrentLimit": 3,
+    "timeout": 30000,
+    "retryAttempts": 2,
+    "extractColors": true,
+    "extractTypography": true,
+    "extractSpacing": false,
+    "validateSchema": true
+  },
+  "validation": {
+    "enabled": true,
+    "strictMode": false,
+    "customRules": []
+  },
+  "adapters": {
+    "autoTrigger": true,
+    "parallelProcessing": false,
+    "timeout": 60000
+  },
+  "api": {
+    "baseUrl": "https://api.salla.dev",
+    "timeout": 30000,
+    "retries": 3
+  },
+  "build": {
+    "outputDir": "dist",
+    "cleanBeforeBuild": true,
+    "minifyAssets": true
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/smart-system.log",
+    "maxSize": "10m",
+    "maxFiles": 5
+  }
+}
+
