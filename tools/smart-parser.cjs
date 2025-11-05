@@ -66,45 +66,24 @@ module.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputP
 
 // Simple end-to-end bridge to existing adapter (fast mode)
 SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
-  const files = await fs.readdir(processingPath);
-  let mainHtml = files.find(f=> f.toLowerCase()==='index.html');
-  if (!mainHtml){ mainHtml = files.find(f=> f.toLowerCase().endsWith('.html')); }
-  if (!mainHtml){ this.logger.warn('No HTML file found for adapter generation'); return; }
-  const srcHtml = path.join(processingPath, mainHtml);
-  const rootInputDir = path.join(process.cwd(), 'input');
-  const rootAssetsDir = path.join(rootInputDir, 'assets');
-  await FSHelpers.ensureDir(rootInputDir);
-  await fs.copy(srcHtml, path.join(rootInputDir, 'index.html'));
-  for (const d of ['assets','images']){
-    const p = path.join(processingPath, d);
-    if (await FSHelpers.exists(p)){
-      const dest = d === 'assets' ? rootAssetsDir : path.join(rootInputDir, d);
-      await FSHelpers.ensureDir(dest);
-      await fs.copy(p, dest, { overwrite: true }).catch(()=>{});
-    }
+  // Use namespaced adapter to generate build/salla-themes/<folder>/ and zip
+  const folderName = path.basename(processingPath);
+  const canonicalDir = path.join('smart-input','canonical', folderName);
+  const exists = await fs.pathExists(canonicalDir);
+  if (!exists) {
+    this.logger.warn('Canonical directory not found for adapter: ' + canonicalDir);
+    return;
   }
-  const steps = [ ['node', ['core/input.js']], ['node', ['core/adapter-salla.js']], ['node', ['core/assets.js']], ['node', ['core/locales.js']], ['node', ['core/export.js']] ];
-  for (const [cmd, args] of steps){
-    const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' });
-    if (r.status !== 0){
-      const msg = 'Step failed: ' + cmd + ' ' + args.join(' ');
-      throw new Error(msg);
-    }
-  }
-  this.logger.success('Salla theme generated via existing adapter');
   try {
-    const folderName = path.basename(processingPath);
-    const zipSrc = path.join(process.cwd(),'build','beto-theme.zip');
-    const zipDest = path.join(process.cwd(),'build', folderName + '.zip');
-    if (await fs.pathExists(zipSrc)) {
-      await fs.copy(zipSrc, zipDest, { overwrite: true });
-      this.logger.info('Copied ZIP to ' + zipDest);
-    }
-  } catch(e) {
-    if (this.logger.warn) this.logger.warn('Could not copy namespaced ZIP: ' + e.message);
+    const SallaAdapter = require('../adapters/salla/index.js');
+    const adapter = new SallaAdapter();
+    const out = await adapter.generateFromCanonical(canonicalDir);
+    this.logger.success('Salla theme generated (namespaced) at ' + out.themeOutputDir);
+  } catch (e) {
+    this.logger.error('Adapter generation failed: ' + (e && e.message ? e.message : e));
+    throw e;
   }
-
-  }
+}
 if (require.main === module){
   (async () => {
     const parser = new SmartInputParser();

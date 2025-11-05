@@ -35,7 +35,8 @@
                     "validate":  "node tools/schema-validator.js",
                     "watch":  "npm run watch:input",
                     "dev":  "npm run watch:input",
-                    "process-all":  "npm run parse \u0026\u0026 npm run validate",
+                    "process-all": "npm run parse && npm run validate" ,
+    "smart-validate": "node tools/validate-smart.cjs",
                     "smart-parse": "node tools/smart-parser.cjs",
                     "smart-watch": "node tools/simple-watcher.cjs",
                     "smart-init":  "node tools/smart-init.js",
@@ -61,4 +62,5 @@
                             "prettier":  "^3.6.2"
                         }
 }
+
 
