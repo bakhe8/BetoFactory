@@ -19,7 +19,8 @@ npm install
 - `npm run export` — Export `build/beto-theme.zip` (via archiver)
 - `npm run build` — Full pipeline: canonicalize → adapt → assets → locales → validate+lint (Salla CLI) → clean → export
 - `npm run preview` — Start local preview server at http://localhost:5173
-- `npm run watch` — Smart Input watcher (see below)
+- `npm run watch:input` — Smart Input watcher (see below)
+- `npm run watch` — Alias to watch:input
 - `npm run watch:build` — Rebuild pipeline on input changes (legacy build watcher)
 - `npm test` — Run all tests (`test:canonical`, `test:adapter`, `test:export`)
 - `npm run lint` / `npm run format` — ESLint / Prettier
