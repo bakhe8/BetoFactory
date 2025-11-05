@@ -8,9 +8,14 @@ const twigHeader = path.join(dir, 'views', 'components', 'header', 'header.twig'
 const twigFooter = path.join(dir, 'views', 'components', 'footer', 'footer.twig');
 const twigProductCard = path.join(dir, 'views', 'components', 'product', 'card.twig');
 const twigProductGrid = path.join(dir, 'views', 'components', 'product', 'grid.twig');
+const twigAdvGallery = path.join(dir, 'views', 'components', 'advanced', 'product-gallery.twig');
+const twigAdvSwatches = path.join(dir, 'views', 'components', 'advanced', 'variation-swatches.twig');
+const twigAdvQuickAdd = path.join(dir, 'views', 'components', 'advanced', 'quick-add.twig');
 const theme = path.join(dir, 'theme.json');
 const twilight = path.join(dir, 'twilight.json');
 const localesDir = path.join(dir, 'locales');
+const assetSwatches = path.join(dir, 'assets', 'styles', 'swatches.css');
+const assetInteraction = path.join(dir, 'assets', 'js', 'product-interaction.js');
 
 if (!fs.existsSync(dir)) throw new Error('build/salla missing');
 if (!fs.existsSync(twigIndex)) throw new Error('views/pages/index.twig missing');
@@ -19,7 +24,12 @@ if (!fs.existsSync(twigHeader)) throw new Error('views/components/header/header.
 if (!fs.existsSync(twigFooter)) throw new Error('views/components/footer/footer.twig missing');
 if (!fs.existsSync(twigProductCard)) throw new Error('views/components/product/card.twig missing');
 if (!fs.existsSync(twigProductGrid)) throw new Error('views/components/product/grid.twig missing');
+if (!fs.existsSync(twigAdvGallery)) throw new Error('views/components/advanced/product-gallery.twig missing');
+if (!fs.existsSync(twigAdvSwatches)) throw new Error('views/components/advanced/variation-swatches.twig missing');
+if (!fs.existsSync(twigAdvQuickAdd)) throw new Error('views/components/advanced/quick-add.twig missing');
 if (!fs.existsSync(theme)) throw new Error('theme.json missing');
 if (!fs.existsSync(twilight)) throw new Error('twilight.json missing');
 if (!fs.existsSync(localesDir)) throw new Error('locales missing');
+if (!fs.existsSync(assetSwatches)) throw new Error('assets/styles/swatches.css missing');
+if (!fs.existsSync(assetInteraction)) throw new Error('assets/js/product-interaction.js missing');
 console.log('✅ Adapter output exists (views + theme + twilight + locales)');

@@ -21,10 +21,12 @@ function main() {
   const viewsPages = path.join(outDir, 'views', 'pages');
   const viewsComponents = path.join(outDir, 'views', 'components');
   const compProduct = path.join(viewsComponents, 'product');
+  const compAdvanced = path.join(viewsComponents, 'advanced');
   ensureDir(viewsLayouts);
   ensureDir(viewsPages);
   ensureDir(viewsComponents);
   ensureDir(compProduct);
+  ensureDir(compAdvanced);
 
   const defaultHeroTitle = model?.components?.hero?.props?.title || 'Welcome';
   const defaultHeroImage = model?.components?.hero?.props?.image || '';
@@ -61,6 +63,18 @@ function main() {
   <section class="product-grid">
     <h2>Products</h2>
     {% include "components/product/grid.twig" %}
+  </section>
+  {% endif %}
+
+  {% if settings.interactive_product | default(false) %}
+  <section class=\"interactive-product\" data-product-id=\"{{ product.id | default('') }}\">
+    {% include \"components/advanced/product-gallery.twig\" %}
+    {% if settings.show_variation_swatches | default(true) %}
+      {% include \"components/advanced/variation-swatches.twig\" %}
+    {% endif %}
+    {% if settings.quick_ajax_add | default(true) %}
+      {% include \"components/advanced/quick-add.twig\" %}
+    {% endif %}
   </section>
   {% endif %}
 {% endblock %}
@@ -111,6 +125,14 @@ function main() {
 </div>`;
   fs.writeFileSync(path.join(compProduct, 'card.twig'), productCardTwig, 'utf8');
   fs.writeFileSync(path.join(compProduct, 'grid.twig'), productGridTwig, 'utf8');
+
+  // Advanced interactive components
+  const galleryTwig = `<div class="product-gallery">\n  {% if product and product.images is defined %}\n    <div class="gallery">\n      {% for image in product.images %}\n        <img src="{{ image }}" alt="{{ product.name | default('') }}" />\n      {% endfor %}\n    </div>\n  {% endif %}\n</div>`;
+  const swatchesTwig = `<div class="variation-swatches">\n  {% if product and product.variations is defined %}\n    {% for v in product.variations %}\n      <button class="swatch" data-variant-id="{{ v.id }}">{{ v.name }}</button>\n    {% endfor %}\n  {% endif %}\n</div>`;
+  const quickAddTwig = `<div class="quick-add">\n  <button class="quick-add-btn" data-product-id="{{ product.id | default('') }}">Add to Cart</button>\n</div>`;
+  fs.writeFileSync(path.join(compAdvanced, 'product-gallery.twig'), galleryTwig, 'utf8');
+  fs.writeFileSync(path.join(compAdvanced, 'variation-swatches.twig'), swatchesTwig, 'utf8');
+  fs.writeFileSync(path.join(compAdvanced, 'quick-add.twig'), quickAddTwig, 'utf8');
 
   const themeJson = {
     name: 'Beto Theme',
