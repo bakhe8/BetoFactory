@@ -22,7 +22,14 @@ class SmartInputParser {
     this.logger.info(`Starting processing for folder: ${folderName}`);
     await FSHelpers.moveSafe(inputPath, processingPath, { overwrite: true });
     try {
-      const res = await this.parseFolder(processingPath, outputPath, folderName);\n      await this._generateSallaTheme(processingPath);\n      const endTime = Date.now();\n      const processingTime = endTime - startTime;\n      const qaSummary = { folder: folderName, timestamp: new Date().toISOString(), processingTime: processingTime + 'ms', filesProcessed: res.results.length, componentsExtracted: this.countComponents(res.results), assetsFound: this.countAssets(res.results), sectionsDetected: this.countSections(res.results) };\n      this.logger.info('📊 QA Summary: ' + JSON.stringify(qaSummary, null, 2));\n      const summaryPath = path.join('smart-input','canonical', folderName, 'qa-summary.json');\n      await fs.writeJson(summaryPath, qaSummary, { spaces: 2 });
+      const res = await this.parseFolder(processingPath, outputPath, folderName);
+      await this._generateSallaTheme(processingPath);
+      const endTime = Date.now();
+      const processingTime = endTime - startTime;
+      const qaSummary = { folder: folderName, timestamp: new Date().toISOString(), processingTime: processingTime + 'ms', filesProcessed: res.results.length, componentsExtracted: this.countComponents(res.results), assetsFound: this.countAssets(res.results), sectionsDetected: this.countSections(res.results) };
+      this.logger.info('📊 QA Summary: ' + JSON.stringify(qaSummary, null, 2));
+      const summaryPath = path.join('smart-input','canonical', folderName, 'qa-summary.json');
+      await fs.writeJson(summaryPath, qaSummary, { spaces: 2 });
       await FSHelpers.removeSafe(processingPath);
       this.logger.success(`Completed processing for folder: ${folderName}`);
       return res;
@@ -50,7 +57,12 @@ class SmartInputParser {
     return { ...parsedData, metadata: { sourceFile: fileName, processedAt: new Date().toISOString(), parserVersion: '2.1.0-smart' }, smartFeatures: { componentCount: parsedData.components?.length||0 } };
   }
   async copyAssets(src, dest){ const assetDirs=['assets','images','css','js','fonts']; for(const d of assetDirs){ const s=path.join(src,d); const t=path.join(dest,d); if (await FSHelpers.exists(s)){ try { await FSHelpers.copyFileSafe(s,t); this.logger.info(`Copied assets from ${s} to ${t}`);} catch(e){ this.logger.error(`Failed to copy assets from ${s}:`, e);} } } }
-  countComponents(results){ return results.reduce((count, r)=> count + ((r.components && typeof r.components==='object') ? Object.keys(r.components).length : 0), 0); }\r\n  countAssets(results){ return results.reduce((count, r)=> count + (r.assets && Array.isArray(r.assets.images) ? r.assets.images.length : 0), 0); }\r\n  countSections(results){ return results.reduce((count, r)=> count + (Array.isArray(r.sections) ? r.sections.length : 0), 0); }\r\n}\r\n\r\nmodule.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
+  countComponents(results){ return results.reduce((count, r)=> count + ((r.components && typeof r.components==='object') ? Object.keys(r.components).length : 0), 0); }\r
+  countAssets(results){ return results.reduce((count, r)=> count + (r.assets && Array.isArray(r.assets.images) ? r.assets.images.length : 0), 0); }\r
+  countSections(results){ return results.reduce((count, r)=> count + (Array.isArray(r.sections) ? r.sections.length : 0), 0); }\r
+}\r
+\r
+module.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
 
 // Simple end-to-end bridge to existing adapter (fast mode)
 SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
@@ -103,6 +115,7 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
 
 
 
