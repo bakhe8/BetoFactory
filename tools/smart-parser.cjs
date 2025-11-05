@@ -48,7 +48,7 @@ class SmartInputParser {
   }
   enhanceParsing(parsedData, fileName, htmlContent){
     const $ = require('cheerio').load(htmlContent);
-    return { ...parsedData, metadata: { sourceFile: fileName, processedAt: new Date().toISOString(), parserVersion: '2.1.0-smart' }, smartFeatures: { componentCount: parsedData.components?.length||0 }, semanticStructure: HTMLExtractor.extractSemanticStructure($) };
+    return { ...parsedData, metadata: { sourceFile: fileName, processedAt: new Date().toISOString(), parserVersion: '2.1.0-smart' }, smartFeatures: { componentCount: parsedData.components?.length||0 } };
   }
   async copyAssets(src, dest){ const assetDirs=['assets','images','css','js','fonts']; for(const d of assetDirs){ const s=path.join(src,d); const t=path.join(dest,d); if (await FSHelpers.exists(s)){ try { await FSHelpers.copyFileSafe(s,t); this.logger.info(`Copied assets from ${s} to ${t}`);} catch(e){ this.logger.error(`Failed to copy assets from ${s}:`, e);} } } }
 }
@@ -90,6 +90,7 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
 
 
 
