@@ -14,11 +14,13 @@ npm install
 ## Project Commands
 - `npm run canonicalize` — Parse `input/index.html` → `canonical/theme.json`
 - `npm run adapt:salla` — Generate `build/salla/templates/index.twig` + `theme.json`
+- `npm run adapt:platform` — Alias to `adapt:salla` (aligns with docs/roadmap.html)
 - `npm run clean` — Placeholder cleaner step
 - `npm run export` — Export `build/beto-theme.zip` (via archiver)
 - `npm run build` — Full pipeline: canonicalize → adapt → assets → locales → validate+lint (Salla CLI) → clean → export
 - `npm run preview` — Start local preview server at http://localhost:5173
-- `npm run watch` — Watch `input/` and auto rebuild (canonicalize → adapt → assets → locales → validate+lint)
+- `npm run watch` — Smart Input watcher (see below)
+- `npm run watch:build` — Rebuild pipeline on input changes (legacy build watcher)
 - `npm test` — Run all tests (`test:canonical`, `test:adapter`, `test:export`)
 - `npm run lint` / `npm run format` — ESLint / Prettier
 
@@ -31,7 +33,7 @@ Shortcuts (run from repo root; wrapper runs inside `build/salla`):
 - `npm run salla:pre-push` — pre-deployment checks
 - `npm run salla:push` — deploy to dev store
 - `npm run salla:publish` — publish to marketplace
-- `npm run dev` — `salla theme watch` (live development)
+- `npm run salla:dev` — `salla theme watch` (live development)
 
 ## CI
 GitHub Actions builds and tests on every push to `main`.
@@ -66,8 +68,8 @@ Notes:
 
 ## Canonical Model
 Schema: `schemas/canonical.schema.json`
-- Built by `core/canonical.js` using Cheerio.
-- Validated in tests with Ajv (2020-12).
+- Built by `core/input.js` using Cheerio.
+- Validated in tests with Ajv.
 
 ## Adapter (Salla)
 - `core/adapter-salla.js` generates `index.twig` and `theme.json`.
@@ -88,3 +90,38 @@ Schema: `schemas/canonical.schema.json`
 - `docs/roadmap.html` — Roadmap and architecture
 - `docs/TWIG_BASICS.md` — Twig basics for Twilight/Salla
 - `docs/examples/twig-basic-example.twig` — Twig example snippet
+
+## Smart Input Folder System
+Automates parsing of any design folder dropped into `input/` and produces canonical JSON + copies assets.
+
+- Parser: `tools/parser.cjs`
+- Watcher: `tools/folderWatcher.cjs`
+- Validator: `tools/schemaValidator.cjs`
+
+### Quick Start
+1) Drop a folder under `input/<your-design>/` with `.html` files and assets.
+2) Run the parser once:
+```
+npm run parse
+```
+3) Or watch for new folders in real time:
+```
+npm run watch
+```
+4) Validate the generated canonical files:
+```
+npm run validate
+```
+
+### Expected Output
+```
+canonical/
+  <your-design>/
+    *.json        # one per input HTML
+    assets/**     # copied assets (if present)
+```
+
+### Notes
+- The watcher only reacts to new top‑level folders under `input/`.
+- Windows glob patterns are handled (forward‑slash normalization).
+- Validation uses Ajv with a basic canonical schema.
