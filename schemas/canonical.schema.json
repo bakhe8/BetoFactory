@@ -159,19 +159,19 @@
                                                                                   }
                                                                     },
                                                          "styles":  {
-                                                                        "type":  "array",
                                                                         "items":  {
                                                                                       "type":  "string"
-                                                                                  }
+                                                                                  },
+                                                                        "type":  "array"
                                                                     },
                                                          "scripts":  {
-                                                                         "type":  "array",
                                                                          "items":  {
                                                                                        "type":  "string"
-                                                                                   }
+                                                                                   },
+                                                                         "type":  "array"
                                                                      }
                                                      },
-                                      "additionalProperties":  true
+                                      "additionalProperties":  false
                                   }
                    },
     "additionalProperties":  true
