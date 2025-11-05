@@ -7,6 +7,7 @@
   "scripts": {
     "canonicalize": "node core/input.js",
     "adapt:salla": "node core/adapter-salla.js",
+    "adapt:platform": "npm run adapt:salla",
     "assets": "node core/assets.js",
     "locales": "node core/locales.js",
     "clean": "node core/cleaner.js",
