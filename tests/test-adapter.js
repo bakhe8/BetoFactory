@@ -27,6 +27,13 @@ const twilight = path.join(dir, 'twilight.json');
 const localesDir = path.join(dir, 'locales');
 const assetSwatches = path.join(dir, 'assets', 'styles', 'swatches.css');
 const assetInteraction = path.join(dir, 'assets', 'js', 'product-interaction.js');
+const assetApiClient = path.join(dir, 'assets', 'js', 'salla-api-client.js');
+const assetCartManager = path.join(dir, 'assets', 'js', 'cart-manager.js');
+const assetProductFilter = path.join(dir, 'assets', 'js', 'product-filter.js');
+const assetQuickBuy = path.join(dir, 'assets', 'js', 'quick-buy.js');
+const compApiCart = path.join(dir, 'views', 'components', 'api', 'api-cart.twig');
+const compApiGrid = path.join(dir, 'views', 'components', 'api', 'api-product-grid.twig');
+const compApiSearch = path.join(dir, 'views', 'components', 'api', 'api-search.twig');
 
 if (!fs.existsSync(dir)) throw new Error('build/salla missing');
 if (!fs.existsSync(twigIndex)) throw new Error('views/pages/index.twig missing');
@@ -63,9 +70,18 @@ const expectSetting = (id) => {
   if (!tw.settings || !tw.settings.find((s) => s.id === id)) throw new Error(`twilight setting missing: ${id}`);
 };
 ['interactive_product','show_variation_swatches','quick_ajax_add','perf_lazy_loading','perf_async_scripts','perf_critical_css'].forEach(expectSetting);
+['enable_api_integrations','api_quick_add','api_ajax_cart','api_live_search','show_donation_bar','show_offers','show_similar_products'].forEach(expectSetting);
 if (!fs.existsSync(localesDir)) throw new Error('locales missing');
 if (!fs.existsSync(assetSwatches)) throw new Error('assets/styles/swatches.css missing');
 if (!fs.existsSync(assetInteraction)) throw new Error('assets/js/product-interaction.js missing');
+// API integration assets and components
+if (!fs.existsSync(assetApiClient)) throw new Error('assets/js/salla-api-client.js missing');
+if (!fs.existsSync(assetCartManager)) throw new Error('assets/js/cart-manager.js missing');
+if (!fs.existsSync(assetProductFilter)) throw new Error('assets/js/product-filter.js missing');
+if (!fs.existsSync(assetQuickBuy)) throw new Error('assets/js/quick-buy.js missing');
+if (!fs.existsSync(compApiCart)) throw new Error('views/components/api/api-cart.twig missing');
+if (!fs.existsSync(compApiGrid)) throw new Error('views/components/api/api-product-grid.twig missing');
+if (!fs.existsSync(compApiSearch)) throw new Error('views/components/api/api-search.twig missing');
 // Check key predefined pages exist
 if (!fs.existsSync(pProductIndex)) throw new Error('pages/product/index.twig missing');
 if (!fs.existsSync(pProductSingle)) throw new Error('pages/product/single.twig missing');

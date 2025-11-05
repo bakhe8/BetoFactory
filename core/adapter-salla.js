@@ -23,12 +23,14 @@ function main() {
   const compProduct = path.join(viewsComponents, 'product');
   const compAdvanced = path.join(viewsComponents, 'advanced');
   const compSections = path.join(viewsComponents, 'sections');
+  const compApi = path.join(viewsComponents, 'api');
   ensureDir(viewsLayouts);
   ensureDir(viewsPages);
   ensureDir(viewsComponents);
   ensureDir(compProduct);
   ensureDir(compAdvanced);
   ensureDir(compSections);
+  ensureDir(compApi);
 
   const defaultHeroTitle = model?.components?.hero?.props?.title || 'Welcome';
   const defaultHeroImage = model?.components?.hero?.props?.image || '';
@@ -52,6 +54,12 @@ function main() {
     </main>
     {% include "components/footer/footer.twig" %}
     <script src="/assets/js/app.js" defer></script>
+    {% if settings.enable_api_integrations | default(false) %}
+    <script type="module" src="/assets/js/salla-api-client.js" async></script>
+    <script type="module" src="/assets/js/cart-manager.js" async></script>
+    <script type="module" src="/assets/js/product-filter.js" async></script>
+    <script type="module" src="/assets/js/quick-buy.js" async></script>
+    {% endif %}
     {% hook 'body:end' %}
   </body>
 </html>`;
@@ -98,6 +106,13 @@ function main() {
 
   fs.writeFileSync(path.join(viewsLayouts, 'master.twig'), masterTwig, 'utf8');
   fs.writeFileSync(path.join(viewsPages, 'index.twig'), indexTwig, 'utf8');
+  // API components
+  const apiCartTwig = `<div id="ajax-cart" class="ajax-cart">\n  <div class="cart-header">\n    <h4>Shopping Cart</h4>\n    <span class="item-count" id="cart-count">0 items</span>\n  </div>\n  <div class="cart-items" id="cart-items">\n    <!-- Dynamic cart content -->\n  </div>\n  <div class="cart-total">Total: <span id="cart-total">0.00</span> SAR</div>\n  <button onclick="loadCart && loadCart()">Refresh Cart</button>\n</div>`;
+  const apiGridTwig = `<div class="product-grid" data-api-endpoint="/store/v1/products">\n  {% if products is defined %}\n    {% for product in products %}\n      <div class="product-card" data-product-id="{{ product.id }}">\n        <h3>{{ product.name }}</h3>\n        <button class="quick-add-btn" data-product-id="{{ product.id }}">Add to Cart</button>\n      </div>\n    {% endfor %}\n  {% endif %}\n</div>`;
+  const apiSearchTwig = `<div id="api-search">\n  <input type="search" id="live-search" placeholder="Search products..." />\n  <div id="search-results"></div>\n</div>`;
+  fs.writeFileSync(path.join(compApi, 'api-cart.twig'), apiCartTwig, 'utf8');
+  fs.writeFileSync(path.join(compApi, 'api-product-grid.twig'), apiGridTwig, 'utf8');
+  fs.writeFileSync(path.join(compApi, 'api-search.twig'), apiSearchTwig, 'utf8');
 
   // Components: header & footer
   const headerTwig = `{% hook 'component:header.header.start' %}
@@ -423,6 +438,12 @@ function main() {
       { type: 'boolean', id: 'perf_lazy_loading', label: 'Lazy load images', value: true },
       { type: 'boolean', id: 'perf_async_scripts', label: 'Async scripts', value: true },
       { type: 'boolean', id: 'perf_critical_css', label: 'Inline critical CSS', value: false }
+      ,
+      // API integration toggles
+      { type: 'boolean', id: 'enable_api_integrations', label: 'Enable API integrations', value: chosenTier !== 'basic' },
+      { type: 'boolean', id: 'api_quick_add', label: 'API Quick Add', value: true },
+      { type: 'boolean', id: 'api_ajax_cart', label: 'API Ajax Cart', value: true },
+      { type: 'boolean', id: 'api_live_search', label: 'API Live Search', value: false }
     ]
   };
   fs.writeFileSync(path.join(outDir, 'twilight.json'), JSON.stringify(twilight, null, 2), 'utf8');
