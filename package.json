@@ -7,9 +7,11 @@
   "scripts": {
     "canonicalize": "node core/input.js",
     "adapt:salla": "node core/adapter-salla.js",
+    "assets": "node core/assets.js",
+    "locales": "node core/locales.js",
     "clean": "node core/cleaner.js",
     "export": "node core/export.js",
-    "build": "npm run canonicalize && npm run adapt:salla && npm run clean && npm run export && npm run validate:salla",
+    "build": "npm run canonicalize && npm run adapt:salla && npm run assets && npm run locales && npm run clean && npm run export && npm run validate:salla",
     "test:canonical": "node tests/test-canonical.js",
     "test:adapter": "node tests/test-adapter.js",
     "test:export": "node tests/test-export.js",
