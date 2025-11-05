@@ -14,7 +14,7 @@ class SmartInputParser {
     this._setupDirs();
   }
   _setupDirs(){ ['input','canonical','processing','logs'].forEach(d=>{ fs.ensureDirSync(`smart-input/${d}`); }); }
-  async processDesignFolder(folderName){
+  async processDesignFolder(folderName){ const startTime = Date.now();
     const inputPath = `smart-input/input/${folderName}`;
     const outputPath = `smart-input/canonical/${folderName}`;
     const processingPath = `smart-input/processing/${folderName}`;
@@ -22,8 +22,7 @@ class SmartInputParser {
     this.logger.info(`Starting processing for folder: ${folderName}`);
     await FSHelpers.moveSafe(inputPath, processingPath, { overwrite: true });
     try {
-      const res = await this.parseFolder(processingPath, outputPath, folderName);
-      await this._generateSallaTheme(processingPath);
+      const res = await this.parseFolder(processingPath, outputPath, folderName);\n      await this._generateSallaTheme(processingPath);\n      const endTime = Date.now();\n      const processingTime = endTime - startTime;\n      const qaSummary = { folder: folderName, timestamp: new Date().toISOString(), processingTime: processingTime + 'ms', filesProcessed: res.results.length, componentsExtracted: this.countComponents(res.results), assetsFound: this.countAssets(res.results), sectionsDetected: this.countSections(res.results) };\n      this.logger.info('📊 QA Summary: ' + JSON.stringify(qaSummary, null, 2));\n      const summaryPath = path.join('smart-input','canonical', folderName, 'qa-summary.json');\n      await fs.writeJson(summaryPath, qaSummary, { spaces: 2 });
       await FSHelpers.removeSafe(processingPath);
       this.logger.success(`Completed processing for folder: ${folderName}`);
       return res;
@@ -53,7 +52,7 @@ class SmartInputParser {
   async copyAssets(src, dest){ const assetDirs=['assets','images','css','js','fonts']; for(const d of assetDirs){ const s=path.join(src,d); const t=path.join(dest,d); if (await FSHelpers.exists(s)){ try { await FSHelpers.copyFileSafe(s,t); this.logger.info(`Copied assets from ${s} to ${t}`);} catch(e){ this.logger.error(`Failed to copy assets from ${s}:`, e);} } } }
 }
 
-module.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
+countComponents(results){ return results.reduce((count, r)=> count + ((r.components && typeof r.components==='object') ? Object.keys(r.components).length : 0), 0); }\n  countAssets(results){ return results.reduce((count, r)=> count + (r.assets && Array.isArray(r.assets.images) ? r.assets.images.length : 0), 0); }\n  countSections(results){ return results.reduce((count, r)=> count + (Array.isArray(r.sections) ? r.sections.length : 0), 0); }\n}\n\nmodule.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
 
 // Simple end-to-end bridge to existing adapter (fast mode)
 SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
@@ -106,6 +105,7 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
 
 
 
