@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 const FSHelpers = require('../core/utils/fs.cjs');
 const { Logger } = require('./lib/log.cjs');
 const { HTMLParser } = require('../src/parsers/html-parser.cjs');
-const ParserHelpers = require('../core/canonical-helpers');
+const ParserHelpers = require('../core/canonical-helpers.cjs');
 
 class SmartInputParser {
   constructor(config = {}) {
@@ -90,6 +90,7 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
 
 
 
