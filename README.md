@@ -91,6 +91,11 @@ Schema: `schemas/canonical.schema.json`
 - `docs/TWIG_BASICS.md` — Twig basics for Twilight/Salla
 - `docs/examples/twig-basic-example.twig` — Twig example snippet
 
+## Migration Notes
+- Option attributes: templates now use `option.attributes|raw` instead of the previous misspelled `option.attirubtes|raw`.
+  - If you pass custom attributes to option components, provide them via `attributes`.
+- Option visibility conditions: templates accept `option.condition_attributes|raw` and render them on inputs/selects to support conditional visibility (e.g., `data-visibility-option`, `data-visibility-operator`, `data-visibility-value`).
+
 ## Smart Input Folder System
 Automates parsing of any design folder dropped into `input/` and produces canonical JSON + copies assets.
 
