@@ -1,4 +1,4 @@
-const fs = require('fs-extra');
+﻿const fs = require('fs-extra');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const FSHelpers = require('../core/utils/fs.cjs');
@@ -53,7 +53,7 @@ class SmartInputParser {
   async copyAssets(src, dest){ const assetDirs=['assets','images','css','js','fonts']; for(const d of assetDirs){ const s=path.join(src,d); const t=path.join(dest,d); if (await FSHelpers.exists(s)){ try { await FSHelpers.copyFileSafe(s,t); this.logger.info(`Copied assets from ${s} to ${t}`);} catch(e){ this.logger.error(`Failed to copy assets from ${s}:`, e);} } } }
 }
 
-module.exports = { SmartInputParser };
+module.exports = SmartInputParser; module.exports.SmartInputParser = SmartInputParser;
 
 // Simple end-to-end bridge to existing adapter (fast mode)
 SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
@@ -90,3 +90,4 @@ if (require.main === module){
     process.exit(0);
   })();
 }
+
