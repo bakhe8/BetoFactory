@@ -11,10 +11,17 @@
     "locales": "node core/locales.js",
     "clean": "node core/cleaner.js",
     "export": "node core/export.js",
-    "build": "npm run canonicalize && npm run adapt:salla && npm run assets && npm run locales && npm run clean && npm run export && npm run validate:salla",
+    "salla:validate": "node core/salla-cli.js theme validate",
+    "salla:lint": "node core/salla-cli.js theme lint",
+    "salla:pre-push": "node core/salla-cli.js theme pre-push",
+    "salla:push": "node core/salla-cli.js theme push",
+    "salla:publish": "node core/salla-cli.js theme publish",
+    "dev": "node core/salla-cli.js theme watch",
+    "build": "npm run canonicalize && npm run adapt:salla && npm run assets && npm run locales && npm run salla:validate && npm run salla:lint && npm run clean && npm run export",
     "test:canonical": "node tests/test-canonical.js",
     "test:adapter": "node tests/test-adapter.js",
     "test:export": "node tests/test-export.js",
+    "test:salla-cli": "npm run salla:validate && npm run salla:lint",
     "test": "npm run test:canonical && npm run test:adapter && npm run test:export",
     "lint": "eslint .",
     "format": "prettier -w .",
@@ -28,6 +35,7 @@
     "cheerio": "^1.1.2"
   },
   "devDependencies": {
+    "@salla.sa/cli": "^3.2.25",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2"
   }

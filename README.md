@@ -16,11 +16,25 @@ npm install
 - `npm run adapt:salla` — Generate `build/salla/templates/index.twig` + `theme.json`
 - `npm run clean` — Placeholder cleaner step
 - `npm run export` — Export `build/beto-theme.zip` (via archiver)
-- `npm run validate:salla` — Try Salla CLI validation (skips if not found)
-- `npm run build` — Run the whole pipeline
+- `npm run build` — Full pipeline: canonicalize → adapt → assets → locales → validate+lint (Salla CLI) → clean → export
 - `npm run preview` — Start local preview server at http://localhost:5173
 - `npm test` — Run all tests (`test:canonical`, `test:adapter`, `test:export`)
 - `npm run lint` / `npm run format` — ESLint / Prettier
+
+## Salla CLI Integration
+We vendor the Salla CLI for validation, linting, watch, and deployment.
+
+Shortcuts (run from repo root; wrapper runs inside `build/salla`):
+- `npm run salla:validate` — `salla theme validate`
+- `npm run salla:lint` — `salla theme lint`
+- `npm run salla:pre-push` — pre-deployment checks
+- `npm run salla:push` — deploy to dev store
+- `npm run salla:publish` — publish to marketplace
+- `npm run dev` — `salla theme watch` (live development)
+
+Notes:
+- Commands skip gracefully if CLI is unavailable or not authenticated.
+- Some operations (push/publish) require Salla account and auth via CLI.
 
 ## Typical Workflow
 1. Put your source HTML into `input/index.html` (and assets next to it)
@@ -59,4 +73,3 @@ Schema: `schemas/canonical.schema.json`
 - `tests/test-canonical.js` — JSON Schema validation.
 - `tests/test-adapter.js` — Ensures adapter outputs exist.
 - `tests/test-export.js` — Ensures the ZIP exists.
-
