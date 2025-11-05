@@ -1,8 +1,8 @@
-﻿const Ajv = require('ajv');
-const addFormats = require('ajv-formats');
-const { Logger } = require('./lib/log.cjs');
-const FSHelpers = require('../core/utils/fs.cjs');
-const path = require('path');
+﻿const Ajv = require("ajv");
+const addFormats = require("ajv-formats");
+const { Logger } = require("./lib/log.cjs");
+const FSHelpers = require("../core/utils/fs.cjs");
+const path = require("path");
 
 class SchemaValidator {
   constructor(){
@@ -20,16 +20,19 @@ class SchemaValidator {
     try {
       const data = FSHelpers.readJsonSync(filePath);
       const res = this.validate(data);
-      if (res.valid) this.logger.info(✅  is valid);
-      else { this.logger.error(❌  validation failed:); (res.errors||[]).forEach(e=> this.logger.error(  -  )); }
+      if (res.valid) this.logger.info('VALID: ' + filePath);
+      else {
+        this.logger.error('INVALID: ' + filePath);
+        (res.errors||[]).forEach(e=> this.logger.error('  - ' + (e.instancePath||'') + ' ' + (e.message||'')));
+      }
       return res;
-    } catch(e){ this.logger.error(❌  has invalid JSON: ); return { valid:false, errors:[e.message] }; }
+    } catch(e){ this.logger.error('JSON ERROR in ' + filePath + ': ' + e.message); return { valid:false, errors:[e.message] }; }
   }
   async validateFolder(folderPath){
-    if (!(await FSHelpers.exists(folderPath))) { this.logger.error(Folder does not exist: ); return { valid:false, total:0, validCount:0 }; }
+    if (!(await FSHelpers.exists(folderPath))) { this.logger.error('Folder does not exist: ' + folderPath); return { valid:false, total:0, validCount:0 }; }
     const files = await FSHelpers.readdir(folderPath);
     const json = files.filter(f=>f.endsWith('.json'));
-    this.logger.info(Validating  files in );
+    this.logger.info('Validating ' + json.length + ' files in ' + folderPath);
     let validCount=0; const results=[];
     for (const f of json){ const p=path.join(folderPath,f); const r=this.validateFile(p); results.push({ file:f, valid:r.valid, errors:r.errors }); if (r.valid) validCount++; }
     return { valid: validCount===json.length, total: json.length, validCount, results }
@@ -48,4 +51,3 @@ class SchemaValidator {
 }
 
 module.exports = new SchemaValidator();
-
