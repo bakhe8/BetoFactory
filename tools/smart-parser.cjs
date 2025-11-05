@@ -76,7 +76,13 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
   }
   const steps = [ ['node', ['core/input.js']], ['node', ['core/adapter-salla.js']], ['node', ['core/assets.js']], ['node', ['core/locales.js']], ['node', ['core/export.js']] ];
   for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(`Step failed: ${cmd} ${args.join(' ')}`); } }
-  for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(Step failed:  ); } }
+  for (const [cmd, args] of steps){
+    const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' });
+    if (r.status !== 0){
+      const msg = Step failed:  ;
+      throw new Error(msg);
+    }
+  }
   this.logger.success('Salla theme generated via existing adapter');
   try {
     const folderName = path.basename(processingPath);
