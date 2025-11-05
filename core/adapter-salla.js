@@ -46,17 +46,16 @@ function main() {
 </html>`;
 
   const indexTwig = `{% extends "layouts/master.twig" %}
-{% block title %}${defaultHeroTitle.replace(/'/g, "''")} — Home{% endblock %}
+{% block title %}{{ settings.hero_title | default('${defaultHeroTitle.replace(/'/g, "''")}') }} — Home{% endblock %}
 {% block content %}
   <section class="hero">
-    <h2>{{ hero.title | default('${defaultHeroTitle.replace(/'/g, "''")}') }}</h2>
-    {% if hero.image is defined and hero.image %}
-      <img src="{{ hero.image }}" alt="Hero" />
-    {% else %}
-      ${defaultHeroImage ? `<img src="${defaultHeroImage}" alt="Hero" />` : ''}
+    <h2>{{ settings.hero_title | default(hero.title | default('${defaultHeroTitle.replace(/'/g, "''")}')) }}</h2>
+    {% set img = settings.hero_image | default(hero.image | default('')) %}
+    {% if img %}
+      <img src="{{ img }}" alt="Hero" />
     {% endif %}
   </section>
-  {% if product_grid is defined %}
+  {% if settings.show_products_grid | default(product_grid is defined) %}
   <section class="product-grid">
     <h2>Products</h2>
     {# Placeholder for Salla product grid #}

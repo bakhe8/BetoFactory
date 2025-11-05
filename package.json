@@ -17,6 +17,7 @@
     "salla:push": "node core/salla-cli.js theme push",
     "salla:publish": "node core/salla-cli.js theme publish",
     "dev": "node core/salla-cli.js theme watch",
+    "watch": "node core/watch.js",
     "build": "npm run canonicalize && npm run adapt:salla && npm run assets && npm run locales && npm run salla:validate && npm run salla:lint && npm run clean && npm run export",
     "test:canonical": "node tests/test-canonical.js",
     "test:adapter": "node tests/test-adapter.js",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@salla.sa/cli": "^3.2.25",
+    "chokidar": "^4.0.3",
     "eslint": "^9.39.1",
     "prettier": "^3.6.2"
   }

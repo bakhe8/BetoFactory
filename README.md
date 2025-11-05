@@ -18,6 +18,7 @@ npm install
 - `npm run export` — Export `build/beto-theme.zip` (via archiver)
 - `npm run build` — Full pipeline: canonicalize → adapt → assets → locales → validate+lint (Salla CLI) → clean → export
 - `npm run preview` — Start local preview server at http://localhost:5173
+- `npm run watch` — Watch `input/` and auto rebuild (canonicalize → adapt → assets → locales → validate+lint)
 - `npm test` — Run all tests (`test:canonical`, `test:adapter`, `test:export`)
 - `npm run lint` / `npm run format` — ESLint / Prettier
 
@@ -31,6 +32,9 @@ Shortcuts (run from repo root; wrapper runs inside `build/salla`):
 - `npm run salla:push` — deploy to dev store
 - `npm run salla:publish` — publish to marketplace
 - `npm run dev` — `salla theme watch` (live development)
+
+## CI
+GitHub Actions builds and tests on every push to `main`.
 
 Notes:
 - Commands skip gracefully if CLI is unavailable or not authenticated.
