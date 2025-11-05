@@ -62,9 +62,11 @@ function main() {
   {% if settings.feature_tier in ['advanced','premium'] %}
     {% include "components/sections/advanced-hero.twig" %}
     {% include "components/sections/configurable-banner.twig" %}
+    {% include "components/sections/featured-products.twig" %}
   {% endif %}
   {% if settings.feature_tier == 'premium' %}
     {% include "components/sections/testimonials.twig" %}
+    {% include "components/sections/video-banner.twig" %}
   {% endif %}
   <section class="hero">
     <h2>{{ settings.hero_title | default(hero.title | default('${defaultHeroTitle.replace(/'/g, "''")}')) }}</h2>
@@ -244,6 +246,49 @@ function main() {
 {% endschema %}`;
   fs.writeFileSync(path.join(compSections, 'testimonials.twig'), testimonialsTwig, 'utf8');
 
+  // Featured Products section (uses global products if present)
+  const featuredProductsTwig = `<section class="featured-products">
+  <div class="container">
+    <h2>{{ section.settings.title | default('Featured Products') }}</h2>
+    {% include "components/product/grid.twig" %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured Products",
+  "settings": [
+    {"type": "text", "id": "title", "label": "Title", "value": "Featured Products"},
+    {"type": "range", "id": "limit", "label": "Max items", "min": 4, "max": 24, "step": 4, "value": 8}
+  ]
+}
+{% endschema %}`;
+  fs.writeFileSync(path.join(compSections, 'featured-products.twig'), featuredProductsTwig, 'utf8');
+
+  // Video Banner section
+  const videoBannerTwig = `<section class="video-banner">
+  <div class="container">
+    {% if section.settings.video_url %}
+      <video controls {% if section.settings.poster %}poster="{{ section.settings.poster }}"{% endif %} style="max-width:100%">
+        <source src="{{ section.settings.video_url }}" />
+      </video>
+    {% else %}
+      <p>No video URL set.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Video Banner",
+  "settings": [
+    {"type": "text", "id": "video_url", "label": "Video URL"},
+    {"type": "image_picker", "id": "poster", "label": "Poster Image"}
+  ]
+}
+{% endschema %}`;
+  fs.writeFileSync(path.join(compSections, 'video-banner.twig'), videoBannerTwig, 'utf8');
+
   // Predefined pages (scaffold)
   const ensure = (p) => fs.mkdirSync(p, { recursive: true });
   const writePage = (relPath, content) => {
@@ -258,9 +303,15 @@ function main() {
   {% hook 'product:index.items.end' %}`));
   // Single product
   writePage('product/single.twig', page('Product', `  <article class="product-single">
-    {% include "components/advanced/product-gallery.twig" %}
-    {% include "components/advanced/variation-swatches.twig" %}
-    {% include "components/advanced/quick-add.twig" %}
+    {% if settings.feature_tier in ['advanced','premium'] %}
+      {% include "components/advanced/product-gallery.twig" %}
+      {% if settings.show_variation_swatches | default(true) %}
+        {% include "components/advanced/variation-swatches.twig" %}
+      {% endif %}
+      {% if settings.quick_ajax_add | default(true) %}
+        {% include "components/advanced/quick-add.twig" %}
+      {% endif %}
+    {% endif %}
   </article>`));
   // Customer pages
   writePage('customer/profile.twig', page('Profile', `  {% hook 'customer:profile.form.start' %}
@@ -307,6 +358,10 @@ function main() {
   };
   fs.writeFileSync(path.join(outDir, 'theme.json'), JSON.stringify(themeJson, null, 2), 'utf8');
 
+  const envTier = (process.env.FEATURE_TIER || '').toLowerCase();
+  const tierOptions = ['basic','advanced','premium'];
+  const chosenTier = tierOptions.includes(envTier) ? envTier : 'basic';
+
   const twilight = {
     name: { ar: 'بيتو', en: 'Beto Theme' },
     repository: 'https://github.com/bakhe8/BetoFactory',
@@ -332,7 +387,7 @@ function main() {
         value: Boolean(model.components && model.components['product-grid'])
       },
       { type: 'range', id: 'products_per_page', label: 'Products per page', min: 8, max: 24, step: 4, value: 16 },
-      { type: 'items', id: 'feature_tier', label: 'Feature Tier', selected: [{"label":"Basic","value":"basic"}], options: [
+      { type: 'items', id: 'feature_tier', label: 'Feature Tier', selected: [{"label": "${'${'}chosenTier.charAt(0).toUpperCase() + chosenTier.slice(1){'}'}", "value": "${'${'}chosenTier{'}'}"}], options: [
         {"label":"Basic","value":"basic"},
         {"label":"Advanced","value":"advanced"},
         {"label":"Premium","value":"premium"}

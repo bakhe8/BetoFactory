@@ -35,7 +35,7 @@ for (const f of files) {
 }
 
 const home = fs.readFileSync(twigHome, 'utf8');
-['advanced-hero','configurable-banner','testimonials'].forEach((name) => {
+['advanced-hero','configurable-banner','testimonials','featured-products','video-banner'].forEach((name) => {
   if (!home.includes(`components/sections/${name}.twig`)) throw new Error(`Home does not include ${name} section`);
 });
 console.log('✅ All section schemas valid and included on home');

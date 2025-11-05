@@ -108,6 +108,10 @@ const server = http.createServer((req, res) => {
           preview = `<section style="padding:16px;background:#0046FF;color:#fff"><h3>Banner</h3><p>Heading/Subheading</p></section>`;
         } else if (f.includes('testimonials')) {
           preview = `<section style="padding:16px"><blockquote>“Great store!” — Customer</blockquote></section>`;
+        } else if (f.includes('featured-products')) {
+          preview = `<section style=\"padding:16px\"><h3>Featured Products</h3><div style=\"display:grid;grid-template-columns:repeat(4,1fr);gap:8px\"><div style=\"height:50px;background:#ddd\"></div><div style=\"height:50px;background:#ddd\"></div><div style=\"height:50px;background:#ddd\"></div><div style=\"height:50px;background:#ddd\"></div></div></section>`;
+        } else if (f.includes('video-banner')) {
+          preview = `<section style=\"padding:16px\"><h3>Video Banner</h3><div style=\"height:120px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center\">video</div></section>`;
         }
         return `<div style="border:1px solid #ddd;border-radius:8px;padding:12px;margin:10px 0"><strong>${name}</strong>${preview}</div>`;
       }).join('\n');
