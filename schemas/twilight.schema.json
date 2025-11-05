@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beto.factory/schema/twilight.json",
+  "title": "Salla Twilight Theme Config",
+  "type": "object",
+  "required": ["name", "features", "settings"],
+  "properties": {
+    "name": {
+      "type": "object",
+      "required": ["ar", "en"],
+      "properties": {
+        "ar": { "type": "string" },
+        "en": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "repository": { "type": "string" },
+    "author_email": { "type": "string" },
+    "features": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "settings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id"],
+        "properties": {
+          "type": { "type": "string", "enum": ["text", "image", "boolean", "items", "static"] },
+          "id": { "type": "string" },
+          "label": { "type": ["string", "null"] },
+          "format": { "type": ["string", "null"] },
+          "value": {},
+          "selected": {},
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": { "type": "string" },
+                "value": {},
+                "key": { "type": ["string", "null"] }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
+
