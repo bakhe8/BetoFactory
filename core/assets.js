@@ -72,11 +72,16 @@ function main() {
   // API integration layer (client + helpers)
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'salla-api-client.js'),
-    `// Generated Salla API client (simplified)\nexport class SallaAPI {\n  constructor(storeIdentifier, currency = 'SAR') {\n    this.baseURL = 'https://api.salla.dev/store/v1';\n    this.headers = {\n      'Store-Identifier': storeIdentifier || '',\n      'Currency': currency,\n      'Accept-Language': 'ar',\n      's-app-version': '1.0.0',\n      's-source': 'theme'\n    };\n  }\n  async _json(url, init = {}) {\n    const res = await fetch(url, init);\n    if (!res.ok) throw new Error('API error ' + res.status);\n    return res.json();\n  }\n  async addToCart(cartId, productId, quantity = 1, options = []) {\n    return this._json(\`${'${'}this.baseURL{'}'}/cart/\${'${'}cartId{'}'}/item/\${'${'}productId{'}'}/add\`, {\n      method: 'POST',\n      headers: { ...this.headers, 'Content-Type': 'application/json' },\n      body: JSON.stringify({ quantity, options })\n    });\n  }\n  async getProductDetails(productId) {\n    return this._json(\`${'${'}this.baseURL{'}'}/products/\${'${'}productId{'}'}/details?with=skus_availability\`, { headers: this.headers });\n  }\n  async getCart(cartId) {\n    return this._json(\`${'${'}this.baseURL{'}'}/cart/\${'${'}cartId{'}'}\`, { headers: this.headers });\n  }\n}\nif (typeof window !== 'undefined') { window.SallaAPI = SallaAPI; }\n`
+    `// Generated Salla API client (with retry/backoff and base override)\nfunction sleep(ms){return new Promise(r=>setTimeout(r,ms));}\nexport class SallaAPI {\n  constructor(storeIdentifier, currency = 'SAR') {\n    const base = (typeof window!== 'undefined' && window.API_BASE) ? window.API_BASE : 'https://api.salla.dev/store/v1';\n    this.baseURL = base.replace(/\/$/,'');\n    this.headers = {\n      'Store-Identifier': storeIdentifier || '',\n      'Currency': currency,\n      'Accept-Language': 'ar',\n      's-app-version': '1.0.0',\n      's-source': 'theme'\n    };\n  }\n  async _json(url, init = {}, attempts=3) {\n    let lastErr;\n    for (let i=0;i<attempts;i++){\n      try{\n        const res = await fetch(url, init);\n        if (!res.ok) throw new Error('API error ' + res.status);\n        return await res.json();\n      }catch(e){ lastErr = e; await sleep(300*(i+1));}\n    }\n    throw lastErr;\n  }\n  async addToCart(cartId, productId, quantity = 1, options = []) {\n    return this._json(\`${'${'}this.baseURL{'}'}/cart/\${'${'}cartId{'}'}/item/\${'${'}productId{'}'}/add\`, {\n      method: 'POST',\n      headers: { ...this.headers, 'Content-Type': 'application/json' },\n      body: JSON.stringify({ quantity, options })\n    });\n  }\n  async getProductDetails(productId) {\n    return this._json(\`${'${'}this.baseURL{'}'}/products/\${'${'}productId{'}'}/details?with=skus_availability\`, { headers: this.headers });\n  }\n  async getCart(cartId) {\n    return this._json(\`${'${'}this.baseURL{'}'}/cart/\${'${'}cartId{'}'}\`, { headers: this.headers });\n  }\n}\nif (typeof window !== 'undefined') { window.SallaAPI = SallaAPI; }\n`
   );
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'cart-manager.js'),
-    `// Generated cart manager\nimport { SallaAPI } from './salla-api-client.js';\nconst api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');\nexport async function getOrCreateCartId() {\n  let id = localStorage.getItem('cart_id');\n  if (!id) {\n    const tmp = await api._json(\`${'${'}api.baseURL{'}'}/cart\`, { method: 'POST', headers: api.headers });\n    id = tmp.data?.id || tmp.id || '';\n    if (id) localStorage.setItem('cart_id', id);\n  }\n  return id;\n}\nexport async function updateCartCounter(count) {\n  const el = document.getElementById('cart-count');\n  if (el) el.textContent = count + ' items';\n}\nif (typeof window !== 'undefined') { window.getOrCreateCartId = getOrCreateCartId; window.updateCartCounter = updateCartCounter; window.sallaAPI = api; }\n`
+    `// Generated cart manager with queue + loadCart\nimport { SallaAPI } from './salla-api-client.js';\nconst api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');\nfunction getQueue(){ try{ return JSON.parse(localStorage.getItem('cart_queue')||'[]'); }catch{ return []; } }\nfunction setQueue(q){ localStorage.setItem('cart_queue', JSON.stringify(q)); }\nexport async function getOrCreateCartId() {\n  let id = localStorage.getItem('cart_id');\n  if (!id) {\n    const tmp = await api._json(\`${'${'}api.baseURL{'}'}/cart\`, { method: 'POST', headers: api.headers });\n    id = tmp.data?.id || tmp.id || '';\n    if (id) localStorage.setItem('cart_id', id);\n  }\n  return id;\n}\nexport async function updateCartCounter(count) {\n  const el = document.getElementById('cart-count');\n  if (el) el.textContent = count + ' items';\n}\nexport async function loadCart(){\n  try{\n    const cartId = await getOrCreateCartId();\n    const res = await api.getCart(cartId);\n    const items = res.data?.items || [];\n    const total = res.data?.total?.amount || 0;\n    const cont = document.getElementById('cart-items');\n    if (cont){\n      cont.innerHTML = items.map(it=>`<div class=\\"cart-item\\"><img src=\\"${'${'}it.image{'}'}\\" alt=\\"${'${'}it.name{'}'}\\"><span>${'${'}it.name{'}'}</span><span>${'${'}it.price?.amount || ''{'}'} ${'${'}it.price?.currency || ''{'}'}</span></div>`).join('');\n    }\n    const tot = document.getElementById('cart-total'); if (tot) tot.textContent = total;\n    updateCartCounter(items.length);\n  }catch(e){ toast('Failed to load cart'); }\n}\nexport async function processQueue(){\n  const q = getQueue();\n  if (!q.length) return;\n  const cartId = await getOrCreateCartId();\n  const next = [];\n  for (const it of q){\n    try{ await api.addToCart(cartId, it.productId, it.quantity||1, it.options||[]); }catch(e){ next.push(it); }\n  }\n  setQueue(next);\n}\nexport function enqueueAdd(productId, quantity=1, options=[]){\n  const q = getQueue(); q.push({productId, quantity, options}); setQueue(q);\n}\nexport function toast(msg){\n  let t = document.getElementById('beto-toast');\n  if (!t){ t = document.createElement('div'); t.id='beto-toast'; t.style.cssText='position:fixed;bottom:12px;right:12px;background:#111;color:#fff;padding:8px 12px;border-radius:6px;z-index:9999'; document.body.appendChild(t);}\n  t.textContent = msg; setTimeout(()=>{ if (t && t.parentNode) t.parentNode.removeChild(t); }, 2500);\n}\nif (typeof window !== 'undefined') { window.getOrCreateCartId = getOrCreateCartId; window.updateCartCounter = updateCartCounter; window.loadCart = loadCart; window.enqueueAdd = enqueueAdd; window.processQueue = processQueue; window.toast = toast; window.sallaAPI = api; setInterval(processQueue, 5000); }\n`
+  );
+  // API init: enhance grids and live search
+  writeIfMissing(
+    path.join(buildDir, 'assets', 'js', 'api-init.js'),
+    `import { SallaAPI } from './salla-api-client.js';\nimport { getOrCreateCartId, updateCartCounter, toast } from './cart-manager.js';\nconst api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');\nfunction renderProductCard(p){ return `<div class=\\"product-card\\" data-product-id=\\"${'${'}p.id{'}'}\\"><h3>${'${'}p.name{'}'}</h3><button class=\\"quick-add-btn\\" data-product-id=\\"${'${'}p.id{'}'}\\">Add to Cart</button></div>`; }\nasync function enhanceGrids(){\n  document.querySelectorAll('.product-grid[data-api-endpoint]').forEach(async (grid)=>{\n    try{\n      const ep = grid.getAttribute('data-api-endpoint');\n      const base = (window.API_BASE || '');\n      const res = await fetch(base + ep);\n      const data = await res.json();\n      const products = data.data || [];\n      grid.innerHTML = products.map(renderProductCard).join('');\n    }catch(e){ toast('Failed to load products'); }\n  });\n}\nfunction enhanceLiveSearch(){\n  const input = document.getElementById('live-search');\n  const results = document.getElementById('search-results');\n  if (!input || !results) return;\n  let t;\n  input.addEventListener('input', ()=>{ clearTimeout(t); t = setTimeout(async ()=>{\n    const q = input.value.trim(); if (!q){ results.innerHTML=''; return; }\n    try{ const base = (window.API_BASE || ''); const res = await fetch(base + '/products?query=' + encodeURIComponent(q)); const data = await res.json(); const items = (data.data||[]).map(renderProductCard).join(''); results.innerHTML = items; }catch(e){ toast('Search failed'); }\n  }, 300); });\n}\nwindow.addEventListener('DOMContentLoaded', ()=>{ enhanceGrids(); enhanceLiveSearch(); });\n`
   );
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'product-filter.js'),
@@ -105,6 +110,80 @@ function main() {
     path.join(buildDir, 'assets', 'styles', 'swatches.css'),
     `.variation-swatches{display:flex;gap:.5rem}.variation-swatches .swatch{padding:.4rem .6rem;border:1px solid #ccc;background:#fff;cursor:pointer}
 `
+  );
+
+  // OAuth package (client credentials demo)
+  writeIfMissing(
+    path.join(buildDir, 'assets', 'js', 'oauth', 'salla-oauth-client.js'),
+    [
+      "// Generated Salla OAuth Client (client credentials)",
+      "export class SallaOAuthClient {",
+      "  constructor(clientId, clientSecret, tokenUrl) { this.clientId=clientId; this.clientSecret=clientSecret; this.tokenUrl=tokenUrl || 'https://accounts.salla.sa/oauth2/token'; }",
+      "  async generateAccessToken(scopes='offline_access'){",
+      "    const res = await fetch(this.tokenUrl,{ method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type:'client_credentials', client_id:this.clientId, client_secret:this.clientSecret, scope: scopes })});",
+      "    const data = await res.json(); if(!res.ok){ throw new Error('OAuth Error: ' + (data.error||res.status)); } return data;",
+      "  }",
+      "  async refreshAccessToken(refreshToken){",
+      "    const res = await fetch(this.tokenUrl,{ method:'POST', headers:{ 'Content-Type':'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type:'refresh_token', client_id:this.clientId, client_secret:this.clientSecret, refresh_token: refreshToken })});",
+      "    const data = await res.json(); if(!res.ok){ throw new Error('Token refresh failed: ' + (data.error||res.status)); } return data;",
+      "  }",
+      "}",
+      "if (typeof window !== 'undefined'){ window.SallaOAuthClient = SallaOAuthClient; }"
+    ].join('\n')
+  );
+  writeIfMissing(
+    path.join(buildDir, 'assets', 'js', 'oauth', 'token-manager.js'),
+    [
+      "// Generated Token Manager",
+      "export class TokenManager {",
+      "  constructor(storageKey='salla_oauth_tokens'){ this.storageKey=storageKey; this.tokenRefreshThreshold=300; }",
+      "  storeTokens(tokens){ const td = Object.assign({}, tokens, { expires_at: Date.now() + ((tokens.expires_in||0)*1000) }); localStorage.setItem(this.storageKey, JSON.stringify(td)); }",
+      "  shouldRefreshToken(tokens){ return Date.now() >= ((tokens.expires_at||0) - (this.tokenRefreshThreshold*1000)); }",
+      "  getTokens(){ try{ return JSON.parse(localStorage.getItem(this.storageKey)||'null'); }catch{ return null; } }",
+      "  clear(){ localStorage.removeItem(this.storageKey); }",
+      "}",
+      "if (typeof window !== 'undefined'){ window.TokenManager = TokenManager; }"
+    ].join('\n')
+  );
+  writeIfMissing(
+    path.join(buildDir, 'assets', 'js', 'oauth', 'api-client.js'),
+    [
+      "// Generated API client with OAuth wrapper (simplified)",
+      "import { TokenManager } from './token-manager.js';",
+      "export class SallaAPIClient {",
+      "  constructor(storeIdentifier){ this.storeIdentifier=storeIdentifier|| (window.STORE_IDENTIFIER||''); this.baseURL=(window.API_BASE||'https://api.salla.dev/store/v1'); this.tm = new TokenManager(); }",
+      "  async request(endpoint, options){ const t = this.tm.getTokens(); let token = t && t.access_token; if(!token) throw new Error('No tokens. Please authenticate.'); const headers = Object.assign({ 'Authorization':'Bearer ' + token, 'Store-Identifier': this.storeIdentifier, 'Content-Type':'application/json', 'Accept-Language':'ar', 's-app-version':'1.0.0', 's-source':'beto-factory-theme' }, (options && options.headers)||{}); const res = await fetch(this.baseURL.replace(/\/$/,'') + endpoint, Object.assign({}, options, { headers })); if(!res.ok){ throw new Error('API Error: ' + res.status); } return res.json(); }",
+      "  async getProducts(filters){ const qs = new URLSearchParams(filters||{}).toString(); return this.request('/products' + (qs?'?'+qs:'')); }",
+      "  async getProductDetails(id){ return this.request('/products/'+id+'/details?with=skus_availability,options'); }",
+      "  async addToCart(cartId, productId, quantity=1, options=[]){ return this.request('/cart/'+cartId+'/item/'+productId+'/add', { method:'POST', body: JSON.stringify({ quantity, options }) }); }",
+      "  async getCart(cartId){ return this.request('/cart/'+cartId); }",
+      "}",
+      "if (typeof window !== 'undefined'){ window.SallaAPIClient = SallaAPIClient; }"
+    ].join('\n')
+  );
+
+  // OAuth templates and config
+  writeIfMissing(
+    path.join(buildDir, 'views', 'oauth', 'setup.twig'),
+    [
+      '<div class="oauth-setup" id="oauth-setup">',
+      '  <div class="setup-header">',
+      '    <h3>API Integration Setup</h3>',
+      '    <p>Connect your theme to Salla API for enhanced functionality</p>',
+      '  </div>',
+      '  <div class="setup-steps">',
+      '    <div class="step" id="step-1">',
+      '      <h4>Step 1: Obtain API Credentials</h4>',
+      '      <p>Get your Client ID and Client Secret from Salla Partners dashboard</p>',
+      '      <a href="https://partners.salla.sa" target="_blank" class="btn btn-primary">Get API Credentials</a>',
+      '    </div>',
+      '  </div>',
+      '</div>'
+    ].join('\n')
+  );
+  writeIfMissing(
+    path.join(buildDir, 'config', 'oauth-config.json'),
+    JSON.stringify({ token_url: 'https://accounts.salla.sa/oauth2/token', client_id: '', client_secret: '', scopes: [ 'products:read', 'cart:write', 'orders:read', 'customers:read' ], token_storage: 'localStorage', auto_refresh: true }, null, 2)
   );
 
   console.log(`✅ Assets prepared (${copied.length} images, +${extraCount} extra, css/js placeholders + api layer)`);

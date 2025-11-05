@@ -126,6 +126,47 @@ const server = http.createServer((req, res) => {
       return send(res, 500, 'Error reading sections');
     }
   }
+  // Mock API endpoints (no network)
+  if (url.pathname.startsWith('/mock/store/v1')) {
+    const p = url.pathname.replace('/mock/store/v1', '');
+    res.setHeader('Content-Type', 'application/json');
+    if (p === '/cart' && req.method === 'POST') {
+      return res.end(JSON.stringify({ id: 'mock-cart-1', data: { id: 'mock-cart-1' } }));
+    }
+    if (p.startsWith('/cart/')) {
+      // return minimal cart
+      return res.end(JSON.stringify({ data: { items: [{ name: 'Mock Item', image: '', price: { amount: 100, currency: 'SAR' } }], total: { amount: 100 } } }));
+    }
+    if (p.startsWith('/products')) {
+      const data = { data: [ { id: 1, name: 'Mock Product A' }, { id: 2, name: 'Mock Product B' }, { id: 3, name: 'Mock Product C' } ] };
+      return res.end(JSON.stringify(data));
+    }
+    return res.end(JSON.stringify({}));
+  }
+  if (url.pathname === '/api-demo') {
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>API Demo</title>
+    <script>window.API_BASE='/mock/store/v1'; window.STORE_IDENTIFIER='mock-store'; window.CURRENCY='SAR';</script>
+    </head><body>
+    <h1>API Demo</h1>
+    <div class="product-grid" data-api-endpoint="/products"></div>
+    <div id="api-search"><input type="search" id="live-search" placeholder="Search products..."><div id="search-results"></div></div>
+    <div id="ajax-cart" class="ajax-cart"><div class="cart-header"><h4>Cart</h4><span class="item-count" id="cart-count">0 items</span></div><div id="cart-items"></div><div>Total: <span id="cart-total">0.00</span> SAR</div><button onclick="loadCart && loadCart()">Refresh Cart</button></div>
+    <script type="module" src="/assets/js/salla-api-client.js"></script>
+    <script type="module" src="/assets/js/cart-manager.js"></script>
+    <script type="module" src="/assets/js/api-init.js"></script>
+    <script type="module" src="/assets/js/quick-buy.js"></script>
+    </body></html>`;
+    return send(res, 200, html);
+  }
+  if (url.pathname === '/mock/oauth2/token') {
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(JSON.stringify({ access_token: 'mock_access', refresh_token: 'mock_refresh', expires_in: 3600, token_type: 'Bearer' }));
+  }
+  // Serve built assets for /assets and /config
+  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/config/')) {
+    const file = path.join(root, 'build', 'salla', url.pathname.replace(/^\//, ''));
+    return serveStatic(res, file);
+  }
   if (url.pathname === '/product-demo') {
     const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Product Demo</title>
     <style>body{font-family:system-ui;margin:24px;max-width:900px}.card{border:1px solid #ddd;padding:8px;margin:4px;border-radius:6px}</style></head><body>
@@ -152,6 +193,27 @@ const server = http.createServer((req, res) => {
         <div class="card">Similar #3</div>
       </div>
     </section>
+    <p><a href="/">Back</a></p>
+    </body></html>`;
+    return send(res, 200, html);
+  }
+  if (url.pathname === '/options-demo') {
+    const html = `<!doctype html><html><head><meta charset="utf-8"/><title>Options Demo</title>
+    <style>body{font-family:system-ui;margin:24px;max-width:900px}.opt{border:1px solid #ddd;padding:12px;margin:10px 0;border-radius:8px}</style></head><body>
+    <h1>Product Options Demo (Mock)</h1>
+    <div class="opt"><h3>Color</h3><label><input type="radio"/> <span style="display:inline-block;width:16px;height:16px;background:#c33;border:1px solid #aaa"></span> Red</label></div>
+    <div class="opt"><h3>Date</h3><input type="text" placeholder="Pick a date" readonly></div>
+    <div class="opt"><h3>Datetime</h3><input type="text" placeholder="Pick date/time" readonly></div>
+    <div class="opt"><h3>Donation</h3><input type="text" value="100"/></div>
+    <div class="opt"><h3>Image Upload</h3><input type="file"/></div>
+    <div class="opt"><h3>Multiple Options</h3><label><input type="checkbox"/> Option A</label> <label><input type="checkbox"/> Option B</label></div>
+    <div class="opt"><h3>Number</h3><input type="text" placeholder="0"/></div>
+    <div class="opt"><h3>Single Option</h3><select><option>Pick one</option><option>Choice 1</option></select></div>
+    <div class="opt"><h3>Splitter</h3><div class="splitter" style="height:1px;background:#eee"></div></div>
+    <div class="opt"><h3>Text</h3><input type="text" placeholder="Type here"/></div>
+    <div class="opt"><h3>Textarea</h3><textarea placeholder="Notes..."></textarea></div>
+    <div class="opt"><h3>Thumbnail</h3><label><input type="radio"/> <img src="" alt="thumb" style="width:48px;height:48px;background:#eee"></label></div>
+    <div class="opt"><h3>Time</h3><input type="text" placeholder="00:00" readonly/></div>
     <p><a href="/">Back</a></p>
     </body></html>`;
     return send(res, 200, html);

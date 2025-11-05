@@ -19,6 +19,7 @@ const twigDonation = path.join(dir, 'views', 'components', 'product', 'donation-
 const twigOffer = path.join(dir, 'views', 'components', 'product', 'offer.twig');
 const twigSimilar = path.join(dir, 'views', 'components', 'product', 'similar-products.twig');
 const twigProductSingle = path.join(dir, 'views', 'pages', 'product', 'single.twig');
+const twigOptDir = path.join(dir, 'views', 'components', 'product', 'options');
 const twigAdvGallery = path.join(dir, 'views', 'components', 'advanced', 'product-gallery.twig');
 const twigAdvSwatches = path.join(dir, 'views', 'components', 'advanced', 'variation-swatches.twig');
 const twigAdvQuickAdd = path.join(dir, 'views', 'components', 'advanced', 'quick-add.twig');
@@ -42,6 +43,7 @@ if (!fs.existsSync(twigMaster)) throw new Error('views/layouts/master.twig missi
 const master = fs.readFileSync(twigMaster, 'utf8');
 if (!master.includes("{% hook 'head:start' %}")) throw new Error('head:start hook missing in master.twig');
 if (!master.includes("{% hook 'body:classes' %}")) throw new Error('body:classes hook missing in master.twig');
+if (!master.includes('window.STORE_IDENTIFIER')) throw new Error('globals script missing in master.twig');
 if (!fs.existsSync(twigHeader)) throw new Error('views/components/header/header.twig missing');
 if (!fs.existsSync(twigFooter)) throw new Error('views/components/footer/footer.twig missing');
 if (!fs.existsSync(twigProductCard)) throw new Error('views/components/product/card.twig missing');
@@ -54,6 +56,12 @@ if (!fs.existsSync(twigProductSingle)) throw new Error('views/pages/product/sing
 const productSingle = fs.readFileSync(twigProductSingle, 'utf8');
 ['donation-progress-bar','offer','similar-products'].forEach((name) => {
   if (!productSingle.includes(`components/product/${name}.twig`)) throw new Error(`product/single.twig missing include: ${name}`);
+});
+// Options components exist
+if (!fs.existsSync(twigOptDir)) throw new Error('views/components/product/options missing');
+['color','date','datetime','donation','image','multiple-options','number','single-option','splitter','text','textarea','thumbnail','time'].forEach(name => {
+  const p = path.join(twigOptDir, `${name}.twig`);
+  if (!fs.existsSync(p)) throw new Error(`missing option component: ${name}`);
 });
 // Check product index hooks
 const grid = fs.readFileSync(twigProductGrid, 'utf8');

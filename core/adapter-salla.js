@@ -31,6 +31,7 @@ function main() {
   ensureDir(compAdvanced);
   ensureDir(compSections);
   ensureDir(compApi);
+  ensureDir(path.join(compProduct, 'options'));
 
   const defaultHeroTitle = model?.components?.hero?.props?.title || 'Welcome';
   const defaultHeroImage = model?.components?.hero?.props?.image || '';
@@ -45,6 +46,7 @@ function main() {
     <title>{% block title %}${defaultHeroTitle.replace(/'/g, "''")}{% endblock %}</title>
     <link rel="stylesheet" href="/assets/styles/app.css" />
     {% hook 'head:end' %}
+    <script>window.STORE_IDENTIFIER = "{{ store.identifier | default('') }}"; window.CURRENCY = "{{ salla.currency.code | default('SAR') }}"; window.API_BASE = window.API_BASE || '';</script>
   </head>
   <body class="{% hook 'body:classes' %}">
     {% hook 'body:start' %}
@@ -59,6 +61,7 @@ function main() {
     <script type="module" src="/assets/js/cart-manager.js" async></script>
     <script type="module" src="/assets/js/product-filter.js" async></script>
     <script type="module" src="/assets/js/quick-buy.js" async></script>
+    <script type="module" src="/assets/js/api-init.js" async></script>
     {% endif %}
     {% hook 'body:end' %}
   </body>
@@ -106,6 +109,15 @@ function main() {
 
   fs.writeFileSync(path.join(viewsLayouts, 'master.twig'), masterTwig, 'utf8');
   fs.writeFileSync(path.join(viewsPages, 'index.twig'), indexTwig, 'utf8');
+  // OAuth scripts injected when enabled
+  const oauthScripts = `\n{% if (settings.enable_api_integrations | default(false)) and (settings.enable_oauth | default(false)) %}\n<script type="module" src="/assets/js/oauth/salla-oauth-client.js" async></script>\n<script type="module" src="/assets/js/oauth/token-manager.js" async></script>\n<script type="module" src="/assets/js/oauth/api-client.js" async></script>\n{% endif %}`;
+  // Append OAuth scripts to master if not present
+  const masterPath = path.join(viewsLayouts, 'master.twig');
+  let masterContent = fs.readFileSync(masterPath, 'utf8');
+  if (!masterContent.includes('oauth/salla-oauth-client.js')) {
+    masterContent = masterContent.replace('{% hook \'body:end\' %}', `${oauthScripts}\n    {% hook 'body:end' %}`);
+    fs.writeFileSync(masterPath, masterContent, 'utf8');
+  }
   // API components
   const apiCartTwig = `<div id="ajax-cart" class="ajax-cart">\n  <div class="cart-header">\n    <h4>Shopping Cart</h4>\n    <span class="item-count" id="cart-count">0 items</span>\n  </div>\n  <div class="cart-items" id="cart-items">\n    <!-- Dynamic cart content -->\n  </div>\n  <div class="cart-total">Total: <span id="cart-total">0.00</span> SAR</div>\n  <button onclick="loadCart && loadCart()">Refresh Cart</button>\n</div>`;
   const apiGridTwig = `<div class="product-grid" data-api-endpoint="/store/v1/products">\n  {% if products is defined %}\n    {% for product in products %}\n      <div class="product-card" data-product-id="{{ product.id }}">\n        <h3>{{ product.name }}</h3>\n        <button class="quick-add-btn" data-product-id="{{ product.id }}">Add to Cart</button>\n      </div>\n    {% endfor %}\n  {% endif %}\n</div>`;
@@ -176,6 +188,23 @@ function main() {
 
   const similarTwig = `{% hook 'component:product.similar.start' %}\n{% if products is defined and products|length %}\n  <div class=\"similar-products\">\n    <h3>{{ 'Similar Products' }}</h3>\n    <div class=\"grid\">\n      {% for product in products %}\n        <div class=\"item\">{% include \"components/product/card.twig\" with { product: product } %}</div>\n      {% endfor %}\n    </div>\n  </div>\n{% endif %}\n{% hook 'component:product.similar.end' %}`;
   fs.writeFileSync(path.join(compProduct, 'similar-products.twig'), similarTwig, 'utf8');
+  // Product options components
+  const optionsDir = path.join(compProduct, 'options');
+  ensureDir(optionsDir);
+  const writeOpt = (name, tpl) => fs.writeFileSync(path.join(optionsDir, name + '.twig'), tpl, 'utf8');
+  writeOpt('color', `{% if option and option.details %}\n<div class="option option-color" data-option-id="{{ option.id }}">\n  {% for detail in option.details %}\n  <label class="color-item">\n    <input type="radio" name="options[{{ option.id }}]" value="{{ detail.id }}" {{ detail.is_selected?'checked':'' }} {{ detail.is_out?'disabled':'' }} />\n    <span class="swatch" style="background: {{ detail.value | default('#ccc') }}"></span>\n    <span class="name">{{ detail.name }}</span>\n    {% if detail.is_out %}<small>Out of stock</small>{% endif %}\n  </label>\n  {% endfor %}\n</div>\n{% endif %}`);
+  writeOpt('date', `<input class="form-input date-element{{ option.required?' required':'' }}" placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" {{ option.attirubtes|raw }} readonly="readonly" value="{{ option.value }}" type="text" />`);
+  writeOpt('datetime', `<input class="form-input date-time-element{{ option.required?' required':'' }}" placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" {{ option.attirubtes|raw }} readonly="readonly" value="{{ option.value }}" type="text" />`);
+  writeOpt('donation', `{% if product and product.can_donate %}\n<div class="option option-donation"><label>Donation Amount</label><input type="text" name="options[{{ option.id }}]" value="{{ product.price }}" {{ option.attirubtes|raw }} /></div>\n{% else %}\n<h4 class="donation-status">{% if product and product.donation and product.donation.completed %}Donation Exceed Target Amount{% else %}Donation Exceed Target Date{% endif %}</h4>\n{% endif %}`);
+  writeOpt('image', `<input name="options[{{ option.id }}]" class="option-image" {% if option.value %}data-default="{{ option.value }}"{% endif %} {{ option.attirubtes|raw }} type="file" />`);
+  writeOpt('multiple-options', `{% if option and option.details %}\n<div class="option option-multiple">{% for key,detail in option.details %}<label><input {{ option.disabled?'disabled':'' }} {{ detail.is_selected?'checked':'' }} name="options[{{ option.id }}]" data-option="{{ option.id }}" value="{{ detail.id }}" type="checkbox" {{ option.attirubtes|raw }} /> <span>{{ detail.full_name | default(detail.name) }}</span></label>{% endfor %}</div>{% endif %}`);
+  writeOpt('number', `<input placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" value="{{ option.value }}" type="text" {{ option.attirubtes|raw }} />`);
+  writeOpt('single-option', `<select name="options[{{ option.id }}]" data-option="{{ option.id }}" {{ option.attirubtes|raw }}><option placeholder value="">{{ option.placeholder }}</option>{% for key,detail in option.details %}<option {{ detail.is_selected ? 'selected' : '' }} value="{{ detail.id }}">{{ detail.full_name | default(detail.name) }}</option>{% endfor %}</select>`);
+  writeOpt('splitter', `<div class="splitter"></div>`);
+  writeOpt('text', `<input placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" {{ option.attirubtes|raw }} value="{{ option.value }}" type="text"/>`);
+  writeOpt('textarea', `<textarea placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" {{ option.attirubtes|raw }}>{{ option.value }}</textarea>`);
+  writeOpt('thumbnail', `{% if option and option.details %}{% for detail_index, detail in option.details %}<input {{ detail.is_selected?'checked':'' }} required type="radio" id="option_{{ detail.id }}-{{ option.id }}" {{ detail.is_out?'disabled':'' }} data-itemid="{{ detail.id }}" name="options[{{ option.id }}]" data-img-id="{{ detail.option_value }}" value="{{ detail.id }}" /> <img data-src="{{ detail.image }}" src="{{ asset('images/s-empty.png') }}" class="object-cover h-full w-full lazy-load" title="{{ detail.name }}" alt="{{ detail.name }}" /> <p>{{ detail.name }}</p> {% if detail.is_out %}<small>Out of stock</small>{% endif %}{% endfor %}{% endif %}`);
+  writeOpt('time', `<input placeholder="{{ option.placeholder }}" name="options[{{ option.id }}]" {{ option.attirubtes|raw }} readonly="readonly" value="{{ option.value }}" type="text"/>`);
 
   // Advanced interactive components
   const galleryTwig = `{% hook 'component:advanced.product-gallery.start' %}\n<div class="product-gallery">\n  {% if product and product.images is defined %}\n    <div class="gallery">\n      {% for image in product.images %}\n        <img src="{{ image }}" alt="{{ product.name | default('') }}" />\n      {% endfor %}\n    </div>\n  {% endif %}\n</div>\n{% hook 'component:advanced.product-gallery.end' %}`;
@@ -328,6 +357,17 @@ function main() {
   {% hook 'product:index.items.end' %}`));
   // Single product (with essentials + advanced gated)
   writePage('product/single.twig', page('Product', `  <article class="product-single">
+    {% if product is defined and product.options is defined %}
+      {% for option in product.options %}
+        {% set include_name = option.type %}
+        {% if include_name == 'multi-options' %}{% set include_name = 'multiple-options' %}{% endif %}
+        {% if option.display_type is defined %}
+          {% if option.display_type == 'color' %}{% set include_name = 'color' %}{% endif %}
+          {% if option.display_type == 'image' and include_name in ['single-option','multiple-options'] %}{% set include_name = 'thumbnail' %}{% endif %}
+        {% endif %}
+        {% include 'components/product/options/' ~ include_name ~ '.twig' with { option: option, product: product } ignore missing %}
+      {% endfor %}
+    {% endif %}
     {% if settings.show_donation_bar | default(false) and product is defined and product.donation is defined %}
       {% include "components/product/donation-progress-bar.twig" %}
     {% endif %}
@@ -395,7 +435,9 @@ function main() {
   };
   fs.writeFileSync(path.join(outDir, 'theme.json'), JSON.stringify(themeJson, null, 2), 'utf8');
 
-  const envTier = (process.env.FEATURE_TIER || '').toLowerCase();
+  // Tier selection from CLI flag --tier or env FEATURE_TIER
+  const argTier = (() => { try { const i = process.argv.findIndex(x => x === '--tier'); return i !== -1 ? (process.argv[i+1]||'') : ''; } catch { return ''; } })();
+  const envTier = (argTier || process.env.FEATURE_TIER || '').toLowerCase();
   const tierOptions = ['basic','advanced','premium'];
   const chosenTier = tierOptions.includes(envTier) ? envTier : 'basic';
 
@@ -443,7 +485,10 @@ function main() {
       { type: 'boolean', id: 'enable_api_integrations', label: 'Enable API integrations', value: chosenTier !== 'basic' },
       { type: 'boolean', id: 'api_quick_add', label: 'API Quick Add', value: true },
       { type: 'boolean', id: 'api_ajax_cart', label: 'API Ajax Cart', value: true },
-      { type: 'boolean', id: 'api_live_search', label: 'API Live Search', value: false }
+      { type: 'boolean', id: 'api_live_search', label: 'API Live Search', value: false },
+      // OAuth toggles
+      { type: 'boolean', id: 'enable_oauth', label: 'Enable OAuth (client credentials)', value: false },
+      { type: 'boolean', id: 'oauth_auto_refresh', label: 'OAuth auto refresh', value: true }
     ]
   };
   fs.writeFileSync(path.join(outDir, 'twilight.json'), JSON.stringify(twilight, null, 2), 'utf8');
