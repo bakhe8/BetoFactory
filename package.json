@@ -35,7 +35,9 @@
     "validate": "node tools/schema-validator.js",
     "watch": "npm run watch:input",
     "dev": "npm run watch:input",
-    "process-all": "npm run parse && npm run validate"
+    "process-all": "npm run parse && npm run validate",
+    "smart-parse": "node tools/smart-parser.js",
+    "smart-watch": "node tools/simple-watcher.js"
   },
   "bin": {
     "beto-smart": "./src/cli/smart-cli.js"

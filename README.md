@@ -25,6 +25,10 @@ npm install
 - `npm test` — Run all tests (`test:canonical`, `test:adapter`, `test:export`)
 - `npm run lint` / `npm run format` — ESLint / Prettier
 
+Fast Mode (Smart Input):
+- `npm run smart-parse <folder>` — Process `smart-input/input/<folder>` end‑to‑end and generate the Salla theme ZIP.
+- `npm run smart-watch` — Minimal watcher that processes newly created folders in `smart-input/input`.
+
 ## Salla CLI Integration
 We vendor the Salla CLI for validation, linting, watch, and deployment.
 
@@ -102,7 +106,7 @@ Automates parsing of any design folder dropped into `input/` and produces canoni
 
 - Parser: `tools/parser.cjs`
 - Watcher: `tools/folderWatcher.cjs`
-- Validator: `tools/schemaValidator.cjs`
+- Validator: `tools/schema-validator.js`
 
 ### Quick Start
 1) Drop a folder under `input/<your-design>/` with `.html` files and assets.
@@ -131,3 +135,9 @@ canonical/
 - The watcher only reacts to new top‑level folders under `input/`.
 - Windows glob patterns are handled (forward‑slash normalization).
 - Validation uses Ajv with a basic canonical schema.
+
+### Fast Mode (Smart Input)
+For rapid iteration, you can use the Smart Input fast path which watches and processes folders under `smart-input/input/` and bridges to the existing Salla adapter automatically.
+1) Create a folder: `smart-input/input/my-theme/` and drop `.html` (and optional `assets/`, `images/`).
+2) Run once: `npm run smart-parse my-theme` or watch: `npm run smart-watch`.
+3) Outputs: canonical JSON in `smart-input/canonical/my-theme/` and theme ZIP at `build/beto-theme.zip`.
