@@ -1,4 +1,4 @@
-const chokidar = require('chokidar');
+﻿const chokidar = require('chokidar');
 const { SmartInputParser } = require('./smart-parser');
 const AdapterBridge = require('./adapter-bridge');
 const path = require('path');
@@ -13,4 +13,5 @@ class SimpleWatcher {
 if (require.main === module){ new SimpleWatcher().start(); }
 
 module.exports = SimpleWatcher;
+
 
