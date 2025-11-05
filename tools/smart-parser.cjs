@@ -79,7 +79,7 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
   for (const [cmd, args] of steps){
     const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' });
     if (r.status !== 0){
-      const msg = Step failed:  ;
+      const msg = 'Step failed: ' + cmd + ' ' + args.join(' ');
       throw new Error(msg);
     }
   }
