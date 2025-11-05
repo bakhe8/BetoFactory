@@ -1,12 +1,11 @@
-const fs = require('fs-extra');
+﻿const fs = require('fs-extra');
 const path = require('path');
-const Ajv = require('ajv');
-const ajv = new Ajv();
+const Ajv = require('ajv'); const ajv = new Ajv();
 
 class SchemaValidator {
   constructor() {
     this.canonicalSchema = this.loadCanonicalSchema();
-    this.setupLogging();
+    this.validateCanonical = ajv.compile(this.canonicalSchema); this.setupLogging();
   }
   setupLogging() { fs.ensureDirSync('logs'); }
   log(message, level = 'INFO') {
@@ -66,9 +65,7 @@ class SchemaValidator {
   }
   async validateJSONFile(filePath) {
     const data = await fs.readJson(filePath);
-    const validate = ajv.compile(this.canonicalSchema);
-    const ok = validate(data);
-    if (!ok) { this.validationErrors = validate.errors; this.log(`Invalid JSON schema in ${filePath}: ${ajv.errorsText(validate.errors)}`, 'WARN'); }
+    const ok = this.validateCanonical(data); if (!ok) { this.validationErrors = this.validateCanonical.errors; this.log(`Invalid JSON schema in ${filePath}: ${ajv.errorsText(validate.errors)}`, 'WARN'); }
     else this.log(`✅ Valid: ${path.basename(filePath)}`);
     return ok;
   }
@@ -95,4 +92,5 @@ if (require.main === module) {
 }
 
 module.exports = SchemaValidator;
+
 
