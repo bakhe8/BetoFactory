@@ -9,15 +9,18 @@
     "adapt:salla": "node core/adapter-salla.js",
     "clean": "node core/cleaner.js",
     "export": "node core/export.js",
-    "build": "npm run canonicalize && npm run adapt:salla && npm run clean && npm run export",
+    "build": "npm run canonicalize && npm run adapt:salla && npm run clean && npm run export && npm run validate:salla",
     "test:canonical": "node tests/test-canonical.js",
     "test:adapter": "node tests/test-adapter.js",
     "test:export": "node tests/test-export.js",
     "test": "npm run test:canonical && npm run test:adapter && npm run test:export",
     "lint": "eslint .",
-    "format": "prettier -w ."
+    "format": "prettier -w .",
+    "preview": "node preview/server.js",
+    "validate:salla": "node core/validate-salla.js"
   },
   "dependencies": {
+    "ajv": "^8.17.1",
     "archiver": "^7.0.1",
     "chalk": "^5.6.2",
     "cheerio": "^1.1.2"
