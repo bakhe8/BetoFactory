@@ -76,8 +76,19 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath){
   }
   const steps = [ ['node', ['core/input.js']], ['node', ['core/adapter-salla.js']], ['node', ['core/assets.js']], ['node', ['core/locales.js']], ['node', ['core/export.js']] ];
   for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(`Step failed: ${cmd} ${args.join(' ')}`); } }
-  this.logger.success('Salla theme generated via existing adapter');\n  try { const folderName = path.basename(processingPath); const zipSrc = path.join(process.cwd(),'build','beto-theme.zip'); const zipDest = path.join(process.cwd(),'build', folderName + '.zip'); if (await fs.pathExists(zipSrc)) { await fs.copy(zipSrc, zipDest, { overwrite: true }); this.logger.info('Copied ZIP to ' + zipDest); } } catch(e) { this.logger.warn && this.logger.warn('Could not copy namespaced ZIP: ' + e.message); }
-}
+  for (const [cmd, args] of steps){ const r = spawnSync(cmd, args, { stdio: 'inherit', cwd: process.cwd(), shell: process.platform === 'win32' }); if (r.status !== 0){ throw new Error(Step failed:  ); } }
+  this.logger.success('Salla theme generated via existing adapter');
+  try {
+    const folderName = path.basename(processingPath);
+    const zipSrc = path.join(process.cwd(),'build','beto-theme.zip');
+    const zipDest = path.join(process.cwd(),'build', folderName + '.zip');
+    if (await fs.pathExists(zipSrc)) {
+      await fs.copy(zipSrc, zipDest, { overwrite: true });
+      this.logger.info('Copied ZIP to ' + zipDest);
+    }
+  } catch(e) {
+    if (this.logger.warn) this.logger.warn('Could not copy namespaced ZIP: ' + e.message);
+  }
 
 // If run directly: process specified folder or all subfolders under smart-input/input
 if (require.main === module){
