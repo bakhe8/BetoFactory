@@ -65,7 +65,7 @@ class SchemaValidator {
   }
   async validateJSONFile(filePath) {
     const data = await fs.readJson(filePath);
-    const ok = this.validateCanonical(data); if (!ok) { this.validationErrors = this.validateCanonical.errors; this.log(`Invalid JSON schema in ${filePath}: ${ajv.errorsText(validate.errors)}`, 'WARN'); }
+    const ok = this.validateCanonical(data); if (!ok) { this.validationErrors = this.validateCanonical.errors; this.log(`Invalid JSON schema in ${filePath}: ${ajv.errorsText(this.validateCanonical.errors)}`, 'WARN'); }
     else this.log(`✅ Valid: ${path.basename(filePath)}`);
     return ok;
   }
