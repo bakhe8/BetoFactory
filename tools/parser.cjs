@@ -8,7 +8,7 @@ class SmartHTMLParser {
     this.inputRoot = 'input';
     this.outputRoot = 'canonical';
     this.logFile = 'logs/parser.log';
-    this.setupLogging();
+    const { createLogger } = require('./lib/log.js');\n    this.logger = createLogger('PARSER', this.logFile);
   }
 
   setupLogging() {
@@ -24,10 +24,10 @@ class SmartHTMLParser {
 
   async processAllFolders(targetFolder) {
     try {
-      this.log('Starting folder processing batch');
+      this.logger.info('Starting folder processing batch');
       const folders = targetFolder ? [targetFolder] : await this.getInputFolders();
       if (folders.length === 0) {
-        this.log('No folders found in input directory', 'WARN');
+        this.logger.info('No folders found in input directory', ');
         return { processed: 0, errors: [] };
       }
       const results = { processed: 0, errors: [], details: [] };
@@ -38,20 +38,20 @@ class SmartHTMLParser {
           results.details.push(detail);
         } catch (e) {
           results.errors.push({ folder, error: e.message });
-          this.log(`Failed to process folder ${folder}: ${e.message}`, 'ERROR');
+          this.logger.info(`Failed to process folder ${folder}: ${e.message}`, ');
         }
       }
-      this.log(`Batch processing complete: ${results.processed} successful, ${results.errors.length} failed`);
+      this.logger.info(`Batch processing complete: ${results.processed} successful, ${results.errors.length} failed`);
       return results;
     } catch (e) {
-      this.log(`Fatal error in processAllFolders: ${e.message}`, 'ERROR');
+      this.logger.info(`Fatal error in processAllFolders: ${e.message}`, ');
       throw e;
     }
   }
 
   async processSingleFolder(folderName) {
     const started = Date.now();
-    this.log(`Processing folder: ${folderName}`);
+    this.logger.info(`Processing folder: ${folderName}`);
     const folderPath = path.join(this.inputRoot, folderName);
     const outputPath = path.join(this.outputRoot, folderName);
     await this.validateInputFolder(folderPath);
@@ -66,19 +66,19 @@ class SmartHTMLParser {
     }
     detail.assetsCopied = await this.copyAssets(folderPath, outputPath);
     detail.processingTime = Date.now() - started;
-    this.log(`✅ Completed ${folderName}: ${detail.htmlFiles} HTML → ${detail.generatedJSONs} JSON, ${detail.assetsCopied} assets`);
+    this.logger.info(`✅ Completed ${folderName}: ${detail.htmlFiles} HTML → ${detail.generatedJSONs} JSON, ${detail.assetsCopied} assets`);
     return detail;
   }
 
   async processHTMLFile(filePath, folderName, outputPath) {
     const rel = path.relative(path.join(this.inputRoot, folderName), filePath);
-    this.log(`Parsing HTML: ${rel}`);
+    this.logger.info(`Parsing HTML: ${rel}`);
     const html = await fs.readFile(filePath, 'utf8');
     const data = this.extractCanonicalFromHTML(html, filePath);
     data.metadata = { sourceFile: rel, extractedAt: new Date().toISOString(), folder: folderName, parserVersion: '1.0.0' };
     const outName = path.basename(filePath, '.html') + '.json';
     await fs.writeJson(path.join(outputPath, outName), data, { spaces: 2 });
-    this.log(`Generated: ${outName}`);
+    this.logger.info(`Generated: ${outName}`);
     return { input: rel, output: outName };
   }
 
@@ -181,7 +181,7 @@ class SmartHTMLParser {
       const items = await fs.readdir(this.inputRoot, { withFileTypes: true });
       return items.filter(d => d.isDirectory()).map(d => d.name).filter(n => !n.startsWith('.'));
     } catch (e) {
-      this.log(`Error reading input directory: ${e.message}`, 'ERROR');
+      this.logger.info(`Error reading input directory: ${e.message}`, ');
       return [];
     }
   }
@@ -196,7 +196,7 @@ class SmartHTMLParser {
     let count = 0;
     for (const dir of assetDirs) {
       const src = path.join(sourcePath, dir); const dest = path.join(destPath, 'assets', dir);
-      if (await fs.pathExists(src)) { await fs.copy(src, dest); const files = await fs.readdir(src); count += files.length; this.log(`Copied ${files.length} files from ${dir}`); }
+      if (await fs.pathExists(src)) { await fs.copy(src, dest); const files = await fs.readdir(src); count += files.length; this.logger.info(`Copied ${files.length} files from ${dir}`); }
     }
     return count;
   }
@@ -223,3 +223,4 @@ if (require.main === module) {
     })
     .catch(err => { console.error('💥 Fatal error:', err); process.exit(1); });
 }
+
