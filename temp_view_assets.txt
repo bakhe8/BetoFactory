@@ -1,4 +1,4 @@
-import fs from 'node:fs';
+﻿import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -76,102 +76,12 @@ function main() {
   );
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'cart-manager.js'),
-    [
-      "// Generated cart manager with queue + loadCart",
-      "import { SallaAPI } from './salla-api-client.js';",
-      "const api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');",
-      "function getQueue(){ try{ return JSON.parse(localStorage.getItem('cart_queue')||'[]'); }catch{ return []; } }",
-      "function setQueue(q){ localStorage.setItem('cart_queue', JSON.stringify(q)); }",
-      "export async function getOrCreateCartId() {",
-      "  let id = localStorage.getItem('cart_id');",
-      "  if (!id) {",
-      "    const tmp = await api._json(api.baseURL.replace(/\\\/$/,'') + '/cart', { method: 'POST', headers: api.headers });",
-      "    id = (tmp && tmp.data && tmp.data.id) || tmp.id || '';",
-      "    if (id) localStorage.setItem('cart_id', id);",
-      "  }",
-      "  return id;",
-      "}",
-      "export async function updateCartCounter(count) {",
-      "  const el = document.getElementById('cart-count');",
-      "  if (el) el.textContent = (count + ' items');",
-      "}",
-      "export async function loadCart(){",
-      "  try{",
-      "    const cartId = await getOrCreateCartId();",
-      "    const res = await api.getCart(cartId);",
-      "    const items = (res && res.data && res.data.items) || [];",
-      "    const total = (res && res.data && res.data.total && res.data.total.amount) || 0;",
-      "    const cont = document.getElementById('cart-items');",
-      "    if (cont){",
-      "      cont.innerHTML = items.map(function(it){",
-      "        var img = (it && it.image) || '';",
-      "        var name = (it && it.name) || '';",
-      "        var amount = (it && it.price && it.price.amount) || '';",
-      "        var currency = (it && it.price && it.price.currency) || '';",
-      "        return '<div class=\\\"cart-item\\\"><img src=\\\"'+img+'\\\" alt=\\\"'+name+'\\\"><span>'+name+'</span><span>'+amount+' '+currency+'</span></div>';",
-      "      }).join('');",
-      "    }",
-      "    const tot = document.getElementById('cart-total'); if (tot) tot.textContent = total;",
-      "    updateCartCounter(items.length);",
-      "  }catch(e){ toast('Failed to load cart'); }",
-      "}",
-      "export async function processQueue(){",
-      "  const q = getQueue();",
-      "  if (!q.length) return;",
-      "  const cartId = await getOrCreateCartId();",
-      "  const next = [];",
-      "  for (const it of q){",
-      "    try{ await api.addToCart(cartId, it.productId, it.quantity||1, it.options||[]); }catch(e){ next.push(it); }",
-      "  }",
-      "  setQueue(next);",
-      "}",
-      "export function enqueueAdd(productId, quantity=1, options=[]){",
-      "  const q = getQueue(); q.push({productId, quantity, options}); setQueue(q);",
-      "}",
-      "export function toast(msg){",
-      "  let t = document.getElementById('beto-toast');",
-      "  if (!t){ t = document.createElement('div'); t.id='beto-toast'; t.style.cssText='position:fixed;bottom:12px;right:12px;background:#111;color:#fff;padding:8px 12px;border-radius:6px;z-index:9999'; document.body.appendChild(t);}",
-      "  t.textContent = msg; setTimeout(function(){ if (t && t.parentNode) t.parentNode.removeChild(t); }, 2500);",
-      "}",
-      "if (typeof window !== 'undefined') { window.getOrCreateCartId = getOrCreateCartId; window.updateCartCounter = updateCartCounter; window.loadCart = loadCart; window.enqueueAdd = enqueueAdd; window.processQueue = processQueue; window.toast = toast; window.sallaAPI = api; setInterval(processQueue, 5000); }"
-    ].join('\n')
+    `// Generated cart manager with queue + loadCart\nimport { SallaAPI } from './salla-api-client.js';\nconst api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');\nfunction getQueue(){ try{ return JSON.parse(localStorage.getItem('cart_queue')||'[]'); }catch{ return []; } }\nfunction setQueue(q){ localStorage.setItem('cart_queue', JSON.stringify(q)); }\nexport async function getOrCreateCartId() {\n  let id = localStorage.getItem('cart_id');\n  if (!id) {\n    const tmp = await api._json(\`${'${'}api.baseURL{'}'}/cart\`, { method: 'POST', headers: api.headers });\n    id = tmp.data?.id || tmp.id || '';\n    if (id) localStorage.setItem('cart_id', id);\n  }\n  return id;\n}\nexport async function updateCartCounter(count) {\n  const el = document.getElementById('cart-count');\n  if (el) el.textContent = count + ' items';\n}\nexport async function loadCart(){\n  try{\n    const cartId = await getOrCreateCartId();\n    const res = await api.getCart(cartId);\n    const items = res.data?.items || [];\n    const total = res.data?.total?.amount || 0;\n    const cont = document.getElementById('cart-items');\n    if (cont){\n      cont.innerHTML = items.map(it=>`<div class=\\"cart-item\\"><img src=\\"${'${'}it.image{'}'}\\" alt=\\"${'${'}it.name{'}'}\\"><span>${'${'}it.name{'}'}</span><span>${'${'}it.price?.amount || ''{'}'} ${'${'}it.price?.currency || ''{'}'}</span></div>`).join('');\n    }\n    const tot = document.getElementById('cart-total'); if (tot) tot.textContent = total;\n    updateCartCounter(items.length);\n  }catch(e){ toast('Failed to load cart'); }\n}\nexport async function processQueue(){\n  const q = getQueue();\n  if (!q.length) return;\n  const cartId = await getOrCreateCartId();\n  const next = [];\n  for (const it of q){\n    try{ await api.addToCart(cartId, it.productId, it.quantity||1, it.options||[]); }catch(e){ next.push(it); }\n  }\n  setQueue(next);\n}\nexport function enqueueAdd(productId, quantity=1, options=[]){\n  const q = getQueue(); q.push({productId, quantity, options}); setQueue(q);\n}\nexport function toast(msg){\n  let t = document.getElementById('beto-toast');\n  if (!t){ t = document.createElement('div'); t.id='beto-toast'; t.style.cssText='position:fixed;bottom:12px;right:12px;background:#111;color:#fff;padding:8px 12px;border-radius:6px;z-index:9999'; document.body.appendChild(t);}\n  t.textContent = msg; setTimeout(()=>{ if (t && t.parentNode) t.parentNode.removeChild(t); }, 2500);\n}\nif (typeof window !== 'undefined') { window.getOrCreateCartId = getOrCreateCartId; window.updateCartCounter = updateCartCounter; window.loadCart = loadCart; window.enqueueAdd = enqueueAdd; window.processQueue = processQueue; window.toast = toast; window.sallaAPI = api; setInterval(processQueue, 5000); }\n`
   );
   // API init: enhance grids and live search
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'api-init.js'),
-    [
-      "import { SallaAPI } from './salla-api-client.js';",
-      "import { getOrCreateCartId, updateCartCounter, toast } from './cart-manager.js';",
-      "const api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');",
-      "function renderProductCard(p){",
-      "  var id = (p && p.id) || '';",
-      "  var name = (p && p.name) || '';",
-      "  return '<div class=\\\"product-card\\\" data-product-id=\\\"'+id+'\\\"><h3>'+name+'</h3><button class=\\\"quick-add-btn\\\" data-product-id=\\\"'+id+'\\\">Add to Cart</button></div>';",
-      "}",
-      "async function enhanceGrids(){",
-      "  document.querySelectorAll('.product-grid[data-api-endpoint]').forEach(async function(grid){",
-      "    try{",
-      "      const ep = grid.getAttribute('data-api-endpoint');",
-      "      const base = (window.API_BASE || '');",
-      "      const res = await fetch(base + ep);",
-      "      const data = await res.json();",
-      "      const products = data.data || [];",
-      "      grid.innerHTML = products.map(renderProductCard).join('');",
-      "    }catch(e){ toast('Failed to load products'); }",
-      "  });",
-      "}",
-      "function enhanceLiveSearch(){",
-      "  const input = document.getElementById('live-search');",
-      "  const results = document.getElementById('search-results');",
-      "  if (!input || !results) return;",
-      "  let t;",
-      "  input.addEventListener('input', function(){ clearTimeout(t); t = setTimeout(async function(){",
-      "    const q = input.value.trim(); if (!q){ results.innerHTML=''; return; }",
-      "    try{ const base = (window.API_BASE || ''); const res = await fetch(base + '/products?query=' + encodeURIComponent(q)); const data = await res.json(); const items = (data.data||[]).map(renderProductCard).join(''); results.innerHTML = items; }catch(e){ toast('Search failed'); }",
-      "  }, 300); });",
-      "}",
-      "window.addEventListener('DOMContentLoaded', function(){ enhanceGrids(); enhanceLiveSearch(); });"
-    ].join('\n')
+    `import { SallaAPI } from './salla-api-client.js';\nimport { getOrCreateCartId, updateCartCounter, toast } from './cart-manager.js';\nconst api = new SallaAPI(window.STORE_IDENTIFIER || '', window.CURRENCY || 'SAR');\nfunction renderProductCard(p){ return `<div class=\\"product-card\\" data-product-id=\\"${'${'}p.id{'}'}\\"><h3>${'${'}p.name{'}'}</h3><button class=\\"quick-add-btn\\" data-product-id=\\"${'${'}p.id{'}'}\\">Add to Cart</button></div>`; }\nasync function enhanceGrids(){\n  document.querySelectorAll('.product-grid[data-api-endpoint]').forEach(async (grid)=>{\n    try{\n      const ep = grid.getAttribute('data-api-endpoint');\n      const base = (window.API_BASE || '');\n      const res = await fetch(base + ep);\n      const data = await res.json();\n      const products = data.data || [];\n      grid.innerHTML = products.map(renderProductCard).join('');\n    }catch(e){ toast('Failed to load products'); }\n  });\n}\nfunction enhanceLiveSearch(){\n  const input = document.getElementById('live-search');\n  const results = document.getElementById('search-results');\n  if (!input || !results) return;\n  let t;\n  input.addEventListener('input', ()=>{ clearTimeout(t); t = setTimeout(async ()=>{\n    const q = input.value.trim(); if (!q){ results.innerHTML=''; return; }\n    try{ const base = (window.API_BASE || ''); const res = await fetch(base + '/products?query=' + encodeURIComponent(q)); const data = await res.json(); const items = (data.data||[]).map(renderProductCard).join(''); results.innerHTML = items; }catch(e){ toast('Search failed'); }\n  }, 300); });\n}\nwindow.addEventListener('DOMContentLoaded', ()=>{ enhanceGrids(); enhanceLiveSearch(); });\n`
   );
   writeIfMissing(
     path.join(buildDir, 'assets', 'js', 'product-filter.js'),

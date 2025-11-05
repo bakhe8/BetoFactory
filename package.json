@@ -28,13 +28,20 @@
     "lint": "eslint .",
     "format": "prettier -w .",
     "preview": "node preview/server.js",
-    "validate:salla": "node core/validate-salla.js"
+    "validate:salla": "node core/validate-salla.js",
+    "parse": "node tools/parser.cjs",
+    "watch": "node tools/folderWatcher.cjs",
+    "validate": "node tools/schemaValidator.cjs",
+    "dev": "npm run watch",
+    "process-all": "npm run parse && npm run validate"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "archiver": "^7.0.1",
     "chalk": "^5.6.2",
-    "cheerio": "^1.1.2"
+    "cheerio": "^1.1.2",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.4.5"
   },
   "devDependencies": {
     "@salla.sa/cli": "^3.2.25",
