@@ -36,6 +36,11 @@ Shortcuts (run from repo root; wrapper runs inside `build/salla`):
 ## CI
 GitHub Actions builds and tests on every push to `main`.
 
+On tag pushes matching `v*`, CI builds and uploads `build/beto-theme.zip` as an artifact.
+
+## Assets
+- Place any additional files under `input/assets/**`; they are copied to `build/salla/assets/**` preserving structure.
+
 Notes:
 - Commands skip gracefully if CLI is unavailable or not authenticated.
 - Some operations (push/publish) require Salla account and auth via CLI.

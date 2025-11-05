@@ -20,9 +20,11 @@ function main() {
   const viewsLayouts = path.join(outDir, 'views', 'layouts');
   const viewsPages = path.join(outDir, 'views', 'pages');
   const viewsComponents = path.join(outDir, 'views', 'components');
+  const compProduct = path.join(viewsComponents, 'product');
   ensureDir(viewsLayouts);
   ensureDir(viewsPages);
   ensureDir(viewsComponents);
+  ensureDir(compProduct);
 
   const defaultHeroTitle = model?.components?.hero?.props?.title || 'Welcome';
   const defaultHeroImage = model?.components?.hero?.props?.image || '';
@@ -58,7 +60,7 @@ function main() {
   {% if settings.show_products_grid | default(product_grid is defined) %}
   <section class="product-grid">
     <h2>Products</h2>
-    {# Placeholder for Salla product grid #}
+    {% include "components/product/grid.twig" %}
   </section>
   {% endif %}
 {% endblock %}
@@ -79,6 +81,36 @@ function main() {
   ensureDir(path.join(viewsComponents, 'footer'));
   fs.writeFileSync(path.join(viewsComponents, 'header', 'header.twig'), headerTwig, 'utf8');
   fs.writeFileSync(path.join(viewsComponents, 'footer', 'footer.twig'), footerTwig, 'utf8');
+
+  // Components: product card + grid
+  const productCardTwig = `<article class="product-card">
+  <a href="{{ product.url | default('#') }}">
+    <div class="thumb">
+      <img src="{{ product.image | default('') }}" alt="{{ product.name | default('') }}" />
+    </div>
+    <div class="info">
+      <h3>{{ product.name | default('Product') }}</h3>
+      {% if product.has_sale %}
+        <div class="price"><del>{{ product.price_before }}</del> <strong>{{ product.price }}</strong></div>
+      {% else %}
+        <div class="price">{{ product.price | default('') }}</div>
+      {% endif %}
+    </div>
+  </a>
+</article>`;
+  const productGridTwig = `<div class="product-grid">
+  {% if products is defined and products|length > 0 %}
+    <div class="grid">
+      {% for product in products %}
+        {% include "components/product/card.twig" with { product: product } %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No products to show.</p>
+  {% endif %}
+</div>`;
+  fs.writeFileSync(path.join(compProduct, 'card.twig'), productCardTwig, 'utf8');
+  fs.writeFileSync(path.join(compProduct, 'grid.twig'), productGridTwig, 'utf8');
 
   const themeJson = {
     name: 'Beto Theme',
