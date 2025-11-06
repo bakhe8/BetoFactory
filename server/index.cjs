@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs-extra');
@@ -109,7 +109,7 @@ app.post('/api/build/:name', async (req, res) => {
     m.last.unshift({ name, code, startedAt, finishedAt, durationMs });
     m.last = m.last.slice(0, 50);
     await writeMetrics(m);
-    io.emit('build:complete', { name, code, durationMs });
+    io.emit('metrics:update', m); io.emit('build:complete', { name, code, durationMs });
   });
   res.json({ ok: true, started: true, name });
 });
@@ -150,3 +150,4 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
