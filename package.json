@@ -47,7 +47,7 @@
                     "adapt:platform":  "npm run adapt:salla",
                     "canonical:select":  "node tools/select-canonical.cjs",
                     "test:salla-cli":  "npm run salla:validate \u0026\u0026 npm run salla:lint",
-                    "test:fast":  "jest -c jest.config.cjs",
+                    "test:fast": "jest -c jest.config.cjs --passWithNoTests",
                     "salla:validate":  "node core/salla-cli.js theme validate",
                     "validate:salla":  "node core/validate-salla.js",
                     "build":  "npm run canonicalize \u0026\u0026 npm run adapt:salla \u0026\u0026 npm run assets \u0026\u0026 npm run locales \u0026\u0026 npm run salla:validate \u0026\u0026 npm run salla:lint \u0026\u0026 npm run clean \u0026\u0026 npm run export",
@@ -119,4 +119,5 @@
              },
     "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
+
 
