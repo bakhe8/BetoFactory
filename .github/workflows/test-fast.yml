@@ -1,41 +1,16 @@
-name: CI
+name: Fast Tests
 
 on:
-  push:
-    branches: [ main, master ]
-    paths:
-      - 'src/**'
-      - 'core/**'
-      - 'tools/**'
-      - 'adapters/**'
-      - 'server/**'
-      - 'dashboard/**'
-      - 'schemas/**'
-      - 'config/**'
-      - 'package.json'
-      - 'package-lock.json'
   pull_request:
     branches: [ main, master ]
-    paths:
-      - 'src/**'
-      - 'core/**'
-      - 'tools/**'
-      - 'adapters/**'
-      - 'server/**'
-      - 'dashboard/**'
-      - 'schemas/**'
-      - 'config/**'
-      - 'package.json'
-      - 'package-lock.json'
 
-# Add explicit permissions to avoid git 128 failures during checkout/push
 permissions:
-  contents: write
+  contents: read
   actions: read
   checks: write
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -56,27 +31,28 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Install
+      - name: Install dependencies
         run: |
           npm ci || npm install
 
-      - name: Fast tests
+      - name: Run fast tests
         run: |
           npm run test:fast || npm test
 
-      - name: Upload logs and artifacts
+      - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: fast-tests-artifacts
           path: |
             logs/
             qa/reports/
             qa/screenshots/
-          retention-days: 7
+          retention-days: 5
+
