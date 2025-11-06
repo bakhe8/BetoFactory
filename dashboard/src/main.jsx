@@ -93,6 +93,57 @@ function LogConsole() {
   )
 }
 
+function MetricsPanel(){
+  const [metrics, setMetrics] = useState({ builds:{ total:0, success:0, failed:0 }, last: [] })
+  useEffect(() => {
+    fetch('/api/metrics').then(r=>r.json()).then(setMetrics)
+    const s = io('http://localhost:5174')
+    s.on('metrics:update', (m) => setMetrics(m))
+    return () => s.close()
+  }, [])
+  const summary = [
+    { name: 'Success', value: metrics.builds?.success || 0, fill: '#10b981' },
+    { name: 'Failed', value: metrics.builds?.failed || 0, fill: '#ef4444' }
+  ]
+  const recent = (metrics.last || []).slice(0, 10).reverse().map((r, idx)=> ({ idx, duration: Math.round((r.durationMs||0)/1000), ok: r.code===0 ? 1 : 0 }))
+  return (
+    <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">Build Summary</h3>
+          <div className="text-sm text-slate-500">Total: {metrics.builds?.total||0}</div>
+        </div>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={summary}>
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="value" fill="#6366f1" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+      <div className="bg-white border rounded p-3">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold">Recent Build Durations (s)</h3>
+        </div>
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={recent}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="idx" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="duration" stroke="#0ea5e9" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  )
+}
 function App(){
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(null)
@@ -139,4 +190,5 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
