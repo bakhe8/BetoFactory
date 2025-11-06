@@ -167,3 +167,19 @@ server.listen(port, () => console.log(`Factory server running on http://localhos
 
 
 
+
+// File content API (text only)
+app.get('/api/file', async (req, res) => {
+  const { platform, theme, file } = req.query;
+  if (!platform || !theme || !file) return res.status(400).json({ ok:false, error:'Missing params' });
+  const safePlatform = String(platform).replace(/[^a-z\-]+/gi,'');
+  const base = path.join('build', safePlatform, String(theme));
+  const requested = path.normalize(path.join(base, String(file)));
+  if (!requested.startsWith(path.resolve(base))) return res.status(400).json({ ok:false, error:'Traversal' });
+  if (!(await fs.pathExists(requested))) return res.status(404).json({ ok:false, error:'Not found' });
+  const textish = /\.(twig|liquid|jinja|json|css|js|md|txt)$/i.test(requested);
+  if (!textish) return res.status(415).json({ ok:false, error:'Unsupported content type' });
+  const data = await fs.readFile(requested, 'utf8');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.send(data);
+});
