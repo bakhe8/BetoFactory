@@ -1,0 +1,114 @@
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const fs = require('fs-extra');
+const { spawn } = require('child_process');
+const multer = require('multer');
+const unzipper = require('unzipper');
+const { Server } = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: '*' } });
+
+app.use(express.json());
+
+// Utilities
+async function listThemeFolders() {
+  const union = new Set();
+  const bases = ['smart-input/input', 'input'];
+  for (const base of bases) {
+    if (!(await fs.pathExists(base))) continue;
+    const entries = await fs.readdir(base, { withFileTypes: true });
+    for (const e of entries) if (e.isDirectory()) union.add(e.name);
+  }
+  return Array.from(union).sort();
+}
+
+function streamLogs(filePath, eventName) {
+  fs.ensureFileSync(filePath);
+  let lastSize = 0;
+  const emitTail = async () => {
+    try {
+      const st = await fs.stat(filePath);
+      if (st.size < lastSize) { lastSize = 0; }
+      const start = Math.max(0, st.size - 16 * 1024);
+      const fd = await fs.open(filePath, 'r');
+      const buf = Buffer.alloc(st.size - start);
+      await fd.read(buf, 0, buf.length, start);
+      await fd.close();
+      lastSize = st.size;
+      io.emit(eventName, buf.toString('utf8'));
+    } catch {}
+  };
+  fs.watch(filePath, { persistent: true }, emitTail);
+  emitTail();
+}
+
+// API endpoints
+app.get('/api/themes', async (req, res) => {
+  res.json({ themes: await listThemeFolders() });
+});
+
+app.get('/api/theme/:name', async (req, res) => {
+  const name = req.params.name;
+  const canonicalPaths = [path.join('smart-input','canonical', name), path.join('canonical', name)];
+  let canonical = null;
+  for (const p of canonicalPaths) {
+    if (await fs.pathExists(path.join(p, 'theme.json'))) { canonical = p; break; }
+  }
+  const platforms = ['salla-themes','zid-themes','shopify-themes'];
+  const builds = {};
+  for (const pf of platforms) {
+    const out = path.join('build', pf, name);
+    builds[pf] = await fs.pathExists(out);
+  }
+  let themeJson = null; let qa = null; let meta = null;
+  if (canonical) {
+    if (await fs.pathExists(path.join(canonical,'theme.json'))) themeJson = await fs.readJson(path.join(canonical,'theme.json')).catch(()=>null);
+    if (await fs.pathExists(path.join(canonical,'qa-summary.json'))) qa = await fs.readJson(path.join(canonical,'qa-summary.json')).catch(()=>null);
+    if (await fs.pathExists(path.join(canonical,'meta.json'))) meta = await fs.readJson(path.join(canonical,'meta.json')).catch(()=>null);
+  }
+  res.json({ name, canonical, themeJson, qa, meta, builds });
+});
+
+app.post('/api/build/:name', async (req, res) => {
+  const name = req.params.name;
+  const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: 'inherit', shell: process.platform === 'win32' });
+  proc.on('exit', (code) => { io.emit('build:complete', { name, code }); });
+  res.json({ ok: true, started: true, name });
+});
+
+// Basic logs endpoint
+app.get('/api/logs/:type', async (req, res) => {
+  const type = req.params.type;
+  const file = type === 'errors' ? path.join('logs','errors.log') : path.join('logs','parser.log');
+  if (!(await fs.pathExists(file))) return res.status(404).send('Not found');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.send(await fs.readFile(file, 'utf8'));
+});
+
+// Upload zip -> /input/<folder>
+const upload = multer({ storage: multer.memoryStorage() });
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ ok:false, error: 'No file' });
+    const outDir = path.join('input', req.body && req.body.name ? String(req.body.name) : `upload_${Date.now()}`);
+    await fs.ensureDir(outDir);
+    await unzipper.Open.buffer(req.file.buffer).then(d => d.extract({ path: outDir, concurrency: 4 }));
+    io.emit('themes:update', { themes: await listThemeFolders() });
+    res.json({ ok: true, folder: outDir });
+  } catch (e) { res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) }); }
+});
+
+// Socket wiring
+io.on('connection', () => { /* no-op */ });
+streamLogs(path.join('logs','parser.log'), 'log:parser');
+streamLogs(path.join('logs','errors.log'), 'log:errors');
+
+// Serve dashboard (when built by Vite preview or static)
+app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'dist')));
+
+const port = process.env.FACTORY_SERVER_PORT || 5174;
+server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
