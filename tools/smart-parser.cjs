@@ -90,7 +90,34 @@ class SmartInputParser {
       });
       const endTime = Date.now();
       const processingTime = endTime - startTime;
-      const qaSummary = { folder: folderName, timestamp: new Date().toISOString(), processingTime: processingTime + 'ms', filesProcessed: res.results.length, componentsExtracted: this.countComponents(res.results), sectionsDetected: this.countSections(res.results), imagesCount: this.countAssets(res.results), stylesCount: this.countStyles(res.results), scriptsCount: this.countScripts(res.results), assetsFound: (this.countAssets(res.results) + this.countStyles(res.results) + this.countScripts(res.results)) };
+      const canonicalOut = path.join('smart-input','canonical', folderName);
+      const listFrom = (arr) => Array.isArray(arr) ? arr : [];
+      const flatten = (key) => res.results.flatMap(r => listFrom(r.assets && r.assets[key]));
+      const imgs = flatten('images');
+      const csss = flatten('styles');
+      const jss = flatten('scripts');
+      const invalid = [];
+      for (const rel of [...imgs, ...csss, ...jss]){
+        if (!rel) continue;
+        if (/^https?:\/\//i.test(rel) || rel.startsWith('//') || /^data:/i.test(rel)) continue;
+        const safe = rel.replace(/\\/g,'/').replace(/^\.\//,'');
+        const exists = await fs.pathExists(path.join(canonicalOut, safe));
+        if (!exists) invalid.push(safe);
+      }
+      const qaSummary = {
+        folder: folderName,
+        timestamp: new Date().toISOString(),
+        processingTime: processingTime + 'ms',
+        filesProcessed: res.results.length,
+        componentsExtracted: this.countComponents(res.results),
+        sectionsDetected: this.countSections(res.results),
+        imagesCount: this.countAssets(res.results),
+        stylesCount: this.countStyles(res.results),
+        scriptsCount: this.countScripts(res.results),
+        assetsFound: (this.countAssets(res.results) + this.countStyles(res.results) + this.countScripts(res.results)),
+        normalizedAssets: { images: imgs.length, styles: csss.length, scripts: jss.length },
+        invalidRefs: Array.from(new Set(invalid))
+      };
       this.logger.info('📊 QA Summary: ' + JSON.stringify(qaSummary, null, 2));
       const summaryPath = path.join('smart-input','canonical', folderName, 'qa-summary.json');
       await fs.writeJson(summaryPath, qaSummary, { spaces: 2 });
@@ -250,6 +277,51 @@ class SmartInputParser {
     };
     schemaScripts.forEach(eachSchema);
     merged.meta = { title: pageTitle, tags: metaTags, schema: schemaScripts, normalized: norm };
+
+    // Collect CSS url(...) references from linked stylesheets (model-only, sync scan)
+    try {
+      const hrefs = [];
+      $('link[rel="stylesheet"]').each((_, el) => {
+        const href = ($(el).attr('href') || '').trim();
+        if (href) hrefs.push(href);
+      });
+      const visited = new Set();
+      const readCssRecursiveSync = (absPath) => {
+        const norm = path.normalize(absPath);
+        if (visited.has(norm)) return '';
+        visited.add(norm);
+        try {
+          const css = fs.readFileSync(norm, 'utf-8');
+          const imports = Array.from(css.matchAll(/@import\s+(?:url\()?['"]?([^'"\)\n]+)['"]?\)?\s*;/gi)).map(m=>m[1]);
+          let bundled = css;
+          for (const imp of imports){
+            if (/^https?:\/\//i.test(imp) || imp.startsWith('//')) continue;
+            const impAbs = path.normalize(path.isAbsolute(imp) ? imp : path.join(path.dirname(norm), imp));
+            bundled += "\n" + readCssRecursiveSync(impAbs);
+          }
+          return bundled;
+        } catch { return ''; }
+      };
+      const cssBundle = [];
+      for (const href of hrefs){
+        if (/^https?:\/\//i.test(href) || href.startsWith('//')) continue;
+        const abs = path.normalize(path.isAbsolute(href) ? href : path.join(path.dirname(path.join('smart-input','processing', fileName)), href));
+        const content = readCssRecursiveSync(abs);
+        if (content) cssBundle.push(content);
+      }
+      if (cssBundle.length){
+        const refs = new Set();
+        for (const cssText of cssBundle){
+          for (const m of cssText.matchAll(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/gi)){
+            const ref = (m[1] || '').trim();
+            if (!ref || /^data:/i.test(ref)) continue;
+            refs.add(ref);
+          }
+        }
+        if (!Array.isArray(merged.assets.images)) merged.assets.images = [];
+        merged.assets.images.push(...Array.from(refs));
+      }
+    } catch {}
 
     // Normalize asset references (forward slashes, remove leading ./, compact paths)
     const normalizeRef = (p) => {
