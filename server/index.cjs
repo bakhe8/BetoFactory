@@ -225,3 +225,41 @@ app.get('/api/qa/:name', async (req, res) => {
 
 
 
+
+// Upload ZIP directly into smart-input/input/<themeName>
+app.post('/api/upload-input', uploadLimiter, upload.single('theme'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid file type' });
+    if (process.env.NODE_ENV === 'production') {
+      const token = req.headers['x-factory-token'] || req.body.token;
+      if (!token || token !== process.env.FACTORY_TOKEN) {
+        await fs.remove(req.file.path).catch(()=>{});
+        return res.status(401).json({ error: 'Valid token required for upload' });
+      }
+    }
+    const { themeName } = req.body;
+    if (!themeName) {
+      await fs.remove(req.file.path).catch(()=>{});
+      return res.status(400).json({ error: 'Theme name required' });
+    }
+    const outDir = path.join('smart-input','input', themeName);
+    await fs.ensureDir(outDir);
+    const dir = await unzipper.Open.file(req.file.path);
+    let totalSize = 0; let entryCount = 0; const maxUnzippedSize = 200 * 1024 * 1024; const maxEntries = 10000;
+    const outAbs = path.resolve(outDir);
+    for (const entry of dir.files) {
+      entryCount++; if (entryCount > maxEntries) throw new Error(`Too many files in archive (max: ${maxEntries})`);
+      totalSize += entry.vars.uncompressedSize || 0; if (totalSize > maxUnzippedSize) throw new Error(`Unzipped size exceeds limit of ${maxUnzippedSize} bytes`);
+      const entryAbs = path.resolve(path.join(outDir, entry.path));
+      if (!entryAbs.startsWith(outAbs)) throw new Error(`Invalid file path in zip: ${entry.path}`);
+      if (entry.type === 'Directory') { await fs.ensureDir(entryAbs); }
+      else { await fs.ensureDir(path.dirname(entryAbs)); const buf = await entry.buffer(); await fs.writeFile(entryAbs, buf); }
+    }
+    await fs.remove(req.file.path).catch(()=>{});
+    io.emit('themes:update', { themes: await listThemeFolders() });
+    return res.json({ success: true, folder: outDir, extracted: entryCount, totalSize });
+  } catch (e) {
+    if (req.file && req.file.path) { await fs.remove(req.file.path).catch(()=>{}); }
+    return res.status(400).json({ error: `Upload failed: ${e && e.message ? e.message : String(e)}` });
+  }
+});
