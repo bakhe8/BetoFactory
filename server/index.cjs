@@ -183,3 +183,11 @@ app.get('/api/file', async (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.send(data);
 });
+
+app.get('/api/qa/:name', async (req, res) => {
+  const name = req.params.name;
+  const file = path.join('qa','reports', `${name}-QA.json`);
+  if (!(await fs.pathExists(file))) return res.status(404).json({ ok:false, error:'No QA report' });
+  const json = await fs.readJson(file).catch(()=>null);
+  res.json(json || { ok:false });
+});
