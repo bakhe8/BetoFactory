@@ -51,12 +51,13 @@ class AdapterManager {
   async _resolveCanonicalPath(arg) {
     // Accept either a folder name under smart-input/canonical or a full path
     if (!arg) throw new Error('No canonical folder provided');
-    const maybeDir = path.join('smart-input', 'canonical', arg);
-    if (await fs.pathExists(maybeDir)) return maybeDir;
+    const maybeDirSmart = path.join('smart-input', 'canonical', arg);
+    const maybeDirRoot = path.join('canonical', arg);
+    if (await fs.pathExists(maybeDirSmart)) return maybeDirSmart;
+    if (await fs.pathExists(maybeDirRoot)) return maybeDirRoot;
     if (await fs.pathExists(arg)) return arg;
     throw new Error(`Canonical path not found: ${arg}`);
   }
 }
 
 module.exports = AdapterManager;
-

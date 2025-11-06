@@ -1,0 +1,17 @@
+{
+  "engine": "twig",
+  "structure": {
+    "templates": "templates",
+    "assets": "assets",
+    "config": "config"
+  },
+  "extensions": {
+    "template": ".twig",
+    "style": ".css",
+    "script": ".js"
+  },
+  "helpers": {
+    "asset": "{{ asset_url }}"
+  }
+}
+

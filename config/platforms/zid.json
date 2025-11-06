@@ -1,0 +1,16 @@
+{
+  "engine": "jinja",
+  "structure": {
+    "templates": "templates",
+    "assets": "assets"
+  },
+  "extensions": {
+    "template": ".jinja",
+    "style": ".css",
+    "script": ".js"
+  },
+  "helpers": {
+    "asset": "{{ url }}"
+  }
+}
+

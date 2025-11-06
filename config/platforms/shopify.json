@@ -1,0 +1,19 @@
+{
+  "engine": "liquid",
+  "structure": {
+    "layout": "layout",
+    "templates": "templates",
+    "sections": "sections",
+    "assets": "assets",
+    "config": "config"
+  },
+  "extensions": {
+    "template": ".liquid",
+    "style": ".css",
+    "script": ".js"
+  },
+  "helpers": {
+    "asset": "{{ 'file' | asset_url }}"
+  }
+}
+

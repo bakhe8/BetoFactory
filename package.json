@@ -53,7 +53,8 @@
                     "salla:serve:ns":  "node tools/salla-ns.cjs watch",
                     "salla:validate:ns":  "node tools/salla-ns.cjs validate",
                     "salla:publish:ns":  "node tools/salla-ns.cjs publish",
-                    "status":  "node scripts/status/status-folder.cjs \u0026\u0026 npx doctoc docs/factory-progress.md"
+                    "status":  "node scripts/status/status-folder.cjs \u0026\u0026 npx doctoc docs/factory-progress.md",
+                    "adapt:cli": "node src/cli/adapter-cli.cjs"
                 },
     "bin":  {
                 "beto-smart":  "src/cli/smart-cli.js"
