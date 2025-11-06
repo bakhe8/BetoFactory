@@ -156,6 +156,31 @@ function QAView({ name }){
     </div>
   )
 }
+function QASummary({ name }){
+  const [qa, setQa] = useState(null)
+  useEffect(() => { fetch(`/api/qa/${encodeURIComponent(name)}`).then(r=>r.ok?r.json():null).then(setQa) }, [name])
+  if (!qa) return <div className="text-slate-500">No QA data</div>
+  const status = qa.status
+  const badge = status === 'passed' ? 'bg-emerald-600' : status === 'failed' ? 'bg-rose-600' : 'bg-slate-500'
+  const diffUrl = `/qa/screenshots/${encodeURIComponent(name)}/diff.png`
+  const htmlUrl = `/qa/reports/${encodeURIComponent(name)}-QA.html`
+  return (
+    <div className="bg-white border rounded p-3 md:col-span-2">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <span className={`inline-block text-white text-xs px-2 py-1 rounded ${badge}`}>QA {status}</span>
+        </div>
+        <a href={htmlUrl} target="_blank" className="underline text-indigo-600">Open HTML report</a>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <pre className="border rounded p-2 h-64 overflow-auto text-xs whitespace-pre-wrap">{JSON.stringify(qa.stages && (qa.stages.summary || qa.stages), null, 2)}</pre>
+        <div className="border rounded p-2 h-64 overflow-auto flex items-center justify-center">
+          <img src={diffUrl} alt="diff" className="max-h-60" onError={(e)=> e.currentTarget.style.display='none'} />
+        </div>
+      </div>
+    </div>
+  )
+}
 function App(){
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(null)
@@ -200,13 +225,15 @@ function App(){
   {!details?.name ? null : (
     <QAView name={selected} />
   )}
-</div>\n<LogConsole />
+</div>\n<QASummary name={selected} />
+<LogConsole />
       </main>
     </div>
   )
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
 
 
