@@ -136,16 +136,27 @@ app.get('/api/logs/:type', async (req, res) => {
 });
 
 // Upload zip -> /input/<folder>
-const upload = multer({ storage: multer.memoryStorage() });
+fs.ensureDirSync(path.join('tmp','uploads'));
+const upload = multer({
+  dest: path.join('tmp','uploads'),
+  limits: { fileSize: 50 * 1024 * 1024, files: 1 }
+});
 app.post('/api/upload', requireAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ ok:false, error: 'No file' });
     const outDir = path.join('input', req.body && req.body.name ? String(req.body.name) : `upload_${Date.now()}`);
     await fs.ensureDir(outDir);
-    await unzipper.Open.buffer(req.file.buffer).then(d => d.extract({ path: outDir, concurrency: 4 }));
+    const uploadPath = req.file.path;
+    // Unzip
+    await unzipper.Open.file(uploadPath).then(zip => zip.extract({ path: outDir, concurrency: 4 }));
+    // Enforce unzipped size limit (200MB)
+    const calcSize = async (dir) => { let sum=0; const walk=async(d)=>{ const items=await fs.readdir(d); for(const it of items){ const p=path.join(d,it); const s=await fs.stat(p); if(s.isDirectory()) await walk(p); else sum+=s.size; } }; await walk(dir); return sum; };
+    const totalSize = await calcSize(outDir);
+    if (totalSize > 200 * 1024 * 1024) throw new Error('Unzipped size exceeds limit');
+    await fs.remove(uploadPath).catch(()=>{});
     io.emit('themes:update', { themes: await listThemeFolders() });
     res.json({ ok: true, folder: outDir });
-  } catch (e) { res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) }); }
+  } catch (e) { if (req.file && req.file.path) { await fs.remove(req.file.path).catch(()=>{}); } res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) }); }
 });
 
 app.get('/api/metrics', async (req, res) => {
@@ -192,4 +203,5 @@ app.get('/api/qa/:name', async (req, res) => {
   const json = await fs.readJson(file).catch(()=>null);
   res.json(json || { ok:false });
 });
+
 
