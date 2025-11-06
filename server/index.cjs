@@ -108,7 +108,10 @@ app.post('/api/build/:name', requireAuth, async (req, res) => {
   const name = req.params.name;
   const startedAt = Date.now();
   buildStart.set(name, startedAt);
-  const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: 'inherit', shell: process.platform === 'win32' });
+  const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: ['ignore','pipe','pipe'], shell: process.platform === 'win32' });
+  proc.stdout.on('data', d => { io.emit('build:log', { name, stream: 'stdout', data: d.toString() }); });
+  proc.stderr.on('data', d => { io.emit('build:log', { name, stream: 'stderr', data: d.toString() }); });
+  io.emit('build:start', { name, startedAt });
   proc.on('exit', async (code) => {
     const finishedAt = Date.now();
     const durationMs = finishedAt - (buildStart.get(name) || finishedAt);
@@ -159,6 +162,7 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
 
 
 
