@@ -22,23 +22,31 @@ function useSocketLogs() {
 }
 
 function UploadBox({ onUploaded }){
-  const [name, setName] = useState('')
+  const [platform, setPlatform] = useState('salla')
+  const [themeName, setThemeName] = useState('')
   const fileRef = useRef()
   const [busy, setBusy] = useState(false)
   const upload = async () => {
     if (!fileRef.current?.files?.[0]) return alert('Pick a ZIP file')
+    if (!themeName) return alert('Enter a theme name')
     const fd = new FormData()
-    fd.append('file', fileRef.current.files[0])
-    if (name) fd.append('name', name)
+    fd.append('theme', fileRef.current.files[0])
+    fd.append('platform', platform)
+    fd.append('themeName', themeName)
     setBusy(true)
-    const res = await fetch('http://localhost:5174/api/upload', { method: 'POST', body: fd })
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
     setBusy(false)
     if (!res.ok) return alert('Upload failed')
     onUploaded && onUploaded()
   }
   return (
     <div className="p-3 bg-white border rounded flex gap-2 items-center">
-      <input type="text" placeholder="folder name (optional)" value={name} onChange={e=>setName(e.target.value)} className="border rounded px-2 py-1" />
+      <select value={platform} onChange={e=>setPlatform(e.target.value)} className="border rounded px-2 py-1">
+        <option value="salla">Salla</option>
+        <option value="shopify">Shopify</option>
+        <option value="zid">Zid</option>
+      </select>
+      <input type="text" placeholder="Theme name" value={themeName} onChange={e=>setThemeName(e.target.value)} className="border rounded px-2 py-1" />
       <input ref={fileRef} type="file" accept=".zip" className="" />
       <button disabled={busy} onClick={upload} className="px-3 py-1 bg-emerald-600 text-white rounded disabled:opacity-50">Upload ZIP</button>
     </div>
@@ -162,7 +170,13 @@ function QASummary({ name }){
   if (!qa) return <div className="text-slate-500">No QA data</div>
   const status = qa.status
   const badge = status === 'passed' ? 'bg-emerald-600' : status === 'failed' ? 'bg-rose-600' : 'bg-slate-500'
-  const diffUrl = `/qa/screenshots/${encodeURIComponent(name)}/diff.png`
+  const visual = qa?.stages?.visual
+  const results = visual?.results || {}
+  const diffs = [
+    { label: 'mobile', url: `/qa/screenshots/${encodeURIComponent(name)}/diff-mobile.png` },
+    { label: 'tablet', url: `/qa/screenshots/${encodeURIComponent(name)}/diff-tablet.png` },
+    { label: 'desktop', url: `/qa/screenshots/${encodeURIComponent(name)}/diff-desktop.png` }
+  ]
   const htmlUrl = `/qa/reports/${encodeURIComponent(name)}-QA.html`
   return (
     <div className="bg-white border rounded p-3 md:col-span-2">
@@ -174,8 +188,17 @@ function QASummary({ name }){
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <pre className="border rounded p-2 h-64 overflow-auto text-xs whitespace-pre-wrap">{JSON.stringify(qa.stages && (qa.stages.summary || qa.stages), null, 2)}</pre>
-        <div className="border rounded p-2 h-64 overflow-auto flex items-center justify-center">
-          <img src={diffUrl} alt="diff" className="max-h-60" onError={(e)=> e.currentTarget.style.display='none'} />
+        <div className="border rounded p-2 h-64 overflow-auto">
+          <div className="text-sm text-slate-600 mb-1">Visual diffs (mobile/tablet/desktop)</div>
+          <div className="flex gap-2">
+            {diffs.map(d => (
+              <div key={d.label} className="flex-1 flex flex-col items-center">
+                <div className="text-xs text-slate-500 mb-1">{d.label}</div>
+                <img src={d.url} alt={d.label} className="max-h-52" onError={(e)=> e.currentTarget.style.display='none'} />
+                <div className="text-xs text-slate-500 mt-1">{results?.[d.label]?.mismatch ?? '—'}%</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -184,6 +207,7 @@ function QASummary({ name }){
 function App(){
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(null)
+  const [logs, setLogs] = useState([])
   useEffect(() => {
     if (!selected) { setDetails(null); return }
     fetch(`/api/theme/${encodeURIComponent(selected)}`).then(r=>r.json()).then(setDetails)
@@ -233,6 +257,7 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
 
 
