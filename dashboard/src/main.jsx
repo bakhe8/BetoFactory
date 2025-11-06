@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { io } from 'socket.io-client'
 
@@ -20,7 +20,31 @@ function useSocketLogs() {
   return { parser, errors }
 }
 
-function ThemeList() {
+function UploadBox({ onUploaded }){
+  const [name, setName] = useState('')
+  const fileRef = useRef()
+  const [busy, setBusy] = useState(false)
+  const upload = async () => {
+    if (!fileRef.current?.files?.[0]) return alert('Pick a ZIP file')
+    const fd = new FormData()
+    fd.append('file', fileRef.current.files[0])
+    if (name) fd.append('name', name)
+    setBusy(true)
+    const res = await fetch('http://localhost:5174/api/upload', { method: 'POST', body: fd })
+    setBusy(false)
+    if (!res.ok) return alert('Upload failed')
+    onUploaded && onUploaded()
+  }
+  return (
+    <div className="p-3 bg-white border rounded flex gap-2 items-center">
+      <input type="text" placeholder="folder name (optional)" value={name} onChange={e=>setName(e.target.value)} className="border rounded px-2 py-1" />
+      <input ref={fileRef} type="file" accept=".zip" className="" />
+      <button disabled={busy} onClick={upload} className="px-3 py-1 bg-emerald-600 text-white rounded disabled:opacity-50">Upload ZIP</button>
+    </div>
+  )
+}
+
+function ThemeList({ onSelect }) {
   const [themes, setThemes] = useState([])
   const [loading, setLoading] = useState(false)
   const refresh = () => fetch('/api/themes').then(r=>r.json()).then(d=> setThemes(d.themes || []))
@@ -34,13 +58,17 @@ function ThemeList() {
     <div className="p-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Themes</h2>
-        <button onClick={refresh} className="px-3 py-1 bg-slate-200 rounded">Refresh</button>
+        <div className="flex gap-2">
+          <button onClick={refresh} className="px-3 py-1 bg-slate-200 rounded">Refresh</button>
+        </div>
       </div>
+      <UploadBox onUploaded={refresh} />
+      <div className="h-3" />
       {themes.length === 0 ? <div className="text-slate-500">No folders under /input</div> : (
         <ul className="space-y-2">
           {themes.map(t => (
             <li key={t} className="bg-white border rounded p-3 flex items-center justify-between">
-              <span className="font-mono">{t}</span>
+              <button className="font-mono text-left" onClick={()=> onSelect && onSelect(t)} title="Open details">{t}</button>
               <button disabled={loading} onClick={() => build(t)} className="px-3 py-1 bg-indigo-600 text-white rounded disabled:opacity-50">Build</button>
             </li>
           ))}
@@ -65,6 +93,12 @@ function LogConsole() {
 }
 
 function App(){
+  const [selected, setSelected] = useState(null)
+  const [details, setDetails] = useState(null)
+  useEffect(() => {
+    if (!selected) { setDetails(null); return }
+    fetch(`/api/theme/${encodeURIComponent(selected)}`).then(r=>r.json()).then(setDetails)
+  }, [selected])
   return (
     <div>
       <header className="bg-white border-b p-4 flex items-center justify-between">
@@ -72,7 +106,31 @@ function App(){
         <div className="text-sm text-slate-500">localhost:5174</div>
       </header>
       <main className="max-w-6xl mx-auto">
-        <ThemeList />
+        {!selected && <ThemeList onSelect={setSelected} />}
+        {selected && (
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xl font-semibold">Theme: <span className="font-mono">{selected}</span></h2>
+              <button onClick={()=> setSelected(null)} className="px-3 py-1 bg-slate-200 rounded">Back</button>
+            </div>
+            {!details ? <div className="text-slate-500">Loading…</div> : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white border rounded p-3">
+                  <h3 className="font-semibold mb-2">Canonical theme.json</h3>
+                  <pre className="text-xs overflow-auto h-64">{JSON.stringify(details.themeJson, null, 2)}</pre>
+                </div>
+                <div className="bg-white border rounded p-3">
+                  <h3 className="font-semibold mb-2">QA / Meta</h3>
+                  <pre className="text-xs overflow-auto h-64">{JSON.stringify({ qa: details.qa, meta: details.meta }, null, 2)}</pre>
+                </div>
+                <div className="bg-white border rounded p-3 md:col-span-2">
+                  <h3 className="font-semibold mb-2">Build outputs</h3>
+                  <pre className="text-xs overflow-auto h-64">{JSON.stringify(details.builds, null, 2)}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         <LogConsole />
       </main>
     </div>
@@ -80,4 +138,3 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
-

@@ -45,6 +45,14 @@ function streamLogs(filePath, eventName) {
   emitTail();
 }
 
+// Metrics storage
+const metricsFile = path.join('logs', 'factory-metrics.json');
+const buildStart = new Map();
+async function readMetrics(){
+  try { return await fs.readJson(metricsFile); } catch { return { builds: { total: 0, success: 0, failed: 0 }, last: [] }; }
+}
+async function writeMetrics(data){ await fs.ensureDir(path.dirname(metricsFile)); await fs.writeJson(metricsFile, data, { spaces: 2 }); }
+
 // API endpoints
 app.get('/api/themes', async (req, res) => {
   res.json({ themes: await listThemeFolders() });
@@ -59,9 +67,24 @@ app.get('/api/theme/:name', async (req, res) => {
   }
   const platforms = ['salla-themes','zid-themes','shopify-themes'];
   const builds = {};
+  async function tree(dir){
+    const files = [];
+    async function walk(d){
+      if (!(await fs.pathExists(d))) return;
+      const entries = await fs.readdir(d);
+      for (const e of entries){
+        const p = path.join(d, e);
+        const st = await fs.stat(p);
+        if (st.isDirectory()) await walk(p); else files.push(path.relative(dir, p).replace(/\\/g,'/'));
+      }
+    }
+    await walk(dir);
+    return files;
+  }
   for (const pf of platforms) {
     const out = path.join('build', pf, name);
-    builds[pf] = await fs.pathExists(out);
+    const exists = await fs.pathExists(out);
+    builds[pf] = { exists, files: exists ? await tree(out) : [] };
   }
   let themeJson = null; let qa = null; let meta = null;
   if (canonical) {
@@ -74,8 +97,20 @@ app.get('/api/theme/:name', async (req, res) => {
 
 app.post('/api/build/:name', async (req, res) => {
   const name = req.params.name;
+  const startedAt = Date.now();
+  buildStart.set(name, startedAt);
   const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: 'inherit', shell: process.platform === 'win32' });
-  proc.on('exit', (code) => { io.emit('build:complete', { name, code }); });
+  proc.on('exit', async (code) => {
+    const finishedAt = Date.now();
+    const durationMs = finishedAt - (buildStart.get(name) || finishedAt);
+    const m = await readMetrics();
+    m.builds.total += 1;
+    if (code === 0) m.builds.success += 1; else m.builds.failed += 1;
+    m.last.unshift({ name, code, startedAt, finishedAt, durationMs });
+    m.last = m.last.slice(0, 50);
+    await writeMetrics(m);
+    io.emit('build:complete', { name, code, durationMs });
+  });
   res.json({ ok: true, started: true, name });
 });
 
@@ -101,6 +136,10 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   } catch (e) { res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) }); }
 });
 
+app.get('/api/metrics', async (req, res) => {
+  res.json(await readMetrics());
+});
+
 // Socket wiring
 io.on('connection', () => { /* no-op */ });
 streamLogs(path.join('logs','parser.log'), 'log:parser');
@@ -111,4 +150,3 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
-
