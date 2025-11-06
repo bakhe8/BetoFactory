@@ -1,6 +1,6 @@
 # Platform Profiles & Mapping (Overview)
 
-This document outlines how Beto Factory uses platform profiles and mapping rules to reconstruct platform-specific theme output from a single canonical model.
+This document outlines how Beto Factory uses platform profiles and mapping rules to reconstruct platform-specific theme output from a single canonical model. As of v2.2.0, adapters emit a unified manifest.json and reconstruction also ensures an index template is present to satisfy basic structure checks.
 
 ## Profiles
 Profiles live under `config/platforms/` and define general characteristics per platform:
@@ -34,6 +34,11 @@ The file reconstruction engine reads canonical JSON and mapping rules, then writ
 ## Adapter Integration
 - Salla: `adapters/salla/index.cjs` loads the platform profile and runs reconstruction with `platform = 'salla'`.
 - Shopify: `adapters/shopify/index.cjs` runs reconstruction with `platform = 'shopify'` and attempts an optional `shopify theme check`.
+- Zid: `adapters/zid/index.cjs` scaffolds required structure and writes a manifest.
+
+All adapters should write a unified `manifest.json` with:
+- `folder`, `platform`, `timestamp`, `sourceCanonicalPath`
+- `sectionsDetected`, `componentsExtracted`, `assetsFound`, `assets[]`
 
 ## Adding a New Platform
 1) Create a profile under `config/platforms/<name>.json`.
@@ -41,4 +46,3 @@ The file reconstruction engine reads canonical JSON and mapping rules, then writ
 3) Add adapter entry in `config/adapters.json`.
 4) Implement adapter under `adapters/<name>/index.cjs` (see docs/adapters/SDK.md).
 5) Wire CLI: `npm run adapt:cli -- adapt --platform <name> --folder <folder>`.
-

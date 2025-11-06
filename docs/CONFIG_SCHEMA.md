@@ -1,4 +1,4 @@
-# Configuration Schema Blocks for Sections
+﻿# Configuration Schema Blocks for Sections
 
 Some Twilight components can embed a configuration schema inside Twig using a `{% schema %} ... {% endschema %}` block. Beto Factory can generate such components so merchants get a UI for customization.
 
@@ -39,4 +39,9 @@ This lets the Twilight engine expose a settings UI for the section.
 ## Adding More Sections
 - Follow the same pattern under `views/components/sections/`
 - Include the section in the desired page template using `{% include "components/sections/<name>.twig" %}`.
+
+
+## Notes (v2.2.0)
+- Schema blocks are optional; reconstruction will still generate placeholders based on section names.
+- QA runner validates schema blocks parse when present and surfaces errors in QA reports.
 

@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Beto Factory — Core Edition (Edition-Labeled Architecture)</title>
+  <title>Beto Factory — Core Edition (v2.2.0 Multi-platform)</title>
   <style>
     body{font-family:Inter,system-ui;background:#fafbff;color:#111;margin:0;line-height:1.6}
     header{background:#11224E;color:#fff;padding:20px 32px;font-size:22px;font-weight:800;letter-spacing:.3px;box-shadow:0 3px 8px rgba(0,0,0,0.15)}
@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-<header>🏗️ Beto Factory — Core Edition (Edition-Labeled Architecture)</header>
+<header>🏗️ Beto Factory — Core Edition — Multi-platform Adapters & QA</header>
 <main>
   <section>
     <h2>🎯 Simplification Strategy Overview</h2>
@@ -93,7 +93,7 @@
     <table>
       <thead><tr><th>Command</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td><code>npm run canonicalize</code></td><td>Converts <code>/input</code> HTML → <code>/canonical/theme.json</code></td></tr>
+        <tr><td><code>npm run canonicalize</code></td><td>Build + QA: <code>node src/cli/factory-build.cjs &lt;folder&gt;</code></td></tr>
         <tr><td><code>npm run adapt:salla</code></td><td>Generate Salla Twig templates and theme.json</td></tr>
         <tr><td><code>npm run adapt:platform</code></td><td>Alias to <code>adapt:salla</code> for roadmap compatibility</td></tr>
         <tr><td><code>npm run export</code></td><td>Packages theme as <code>beto-theme.zip</code> and validates it via platform CLI</td></tr>
@@ -141,3 +141,4 @@ npm run test:export      # Check ZIP structure + platform CLI validation</code><
 </main>
 </body>
 </html>
+
