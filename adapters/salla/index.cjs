@@ -1,4 +1,4 @@
-const fs = require('fs-extra');
+﻿const fs = require('fs-extra');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const archiver = require('archiver');
@@ -51,3 +51,4 @@ class SallaAdapter {
   }
 }
 module.exports = SallaAdapter;
+

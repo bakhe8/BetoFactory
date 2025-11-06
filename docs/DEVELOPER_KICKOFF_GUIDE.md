@@ -125,7 +125,7 @@ Adapters convert canonical models into platform-compliant outputs.
 
 | Command | Description |
 |----------|--------------|
-| `npm run canonicalize` | Converts `/input` HTML → `/canonical/theme.json` |
+| `npm run canonicalize` | Converts `/smart-input/input/<folder>` HTML → `/smart-input/canonical/<folder>/theme.json` |
 | `npm run adapt:salla` | Generates Twig files from canonical model |
 | `npm run export` | Packages `beto-theme.zip` and validates via Salla CLI |
 | `npm run test:*` | Runs automated validation checks |
@@ -231,5 +231,5 @@ git push --tags
 ## 🏁 **Start Coding!**
 
 > Begin with `core/input.js` and `core/canonical.js`.  
-> The first milestone: successfully convert `/input/index.html` → `/canonical/theme.json`.  
+> The first milestone: successfully convert `/smart-input/input/<folder>/index.html` → `/smart-input/canonical/<folder>/theme.json`.  
 > Once stable, proceed to implement `adapter-salla.js`.

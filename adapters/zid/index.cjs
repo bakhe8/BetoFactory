@@ -39,15 +39,28 @@ class ZidAdapter {
     const indexJinja = `<!DOCTYPE html>\n<html>\n<head>\n  <title>{{ title }}</title>\n</head>\n<body>\n  <h1>{{ title }}</h1>\n  {# Scaffold generated from canonical model #}\n</body>\n</html>\n`;
     await fs.writeFile(path.join(templatesDir, 'index.jinja'), indexJinja, 'utf8');
 
-    // Write Zid manifest-like file (scaffold)
+    // Write manifest.json (unified shape)
     const manifest = {
       folder: folderName,
       platform: 'zid',
-      generatedAt: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
       title: metaTitle,
-      sourceCanonicalPath: full
+      sourceCanonicalPath: full,
+      sectionsDetected: (canonical && Array.isArray(canonical.sections)) ? canonical.sections.length : 0,
+      componentsExtracted: (canonical && canonical.components && typeof canonical.components==='object') ? Object.keys(canonical.components).length : 0,
+      assetsFound: 0,
+      assets: []
     };
-    await fs.writeJson(path.join(outDir, 'theme.json'), manifest, { spaces: 2 });
+    // Best-effort asset listing
+    try {
+      const assetsRoot = path.join(outDir, 'assets');
+      const list = [];
+      const walk = async (d) => { const items = await fs.readdir(d).catch(()=>[]); for (const it of items) { const p = path.join(d,it); const st = await fs.stat(p); if (st.isDirectory()) await walk(p); else list.push(path.relative(outDir,p).replace(/\\/g,'/')); } };
+      if (await fs.pathExists(assetsRoot)) await walk(assetsRoot);
+      manifest.assets = list;
+      manifest.assetsFound = list.length;
+    } catch {}
+    await fs.writeJson(path.join(outDir, 'manifest.json'), manifest, { spaces: 2 });
 
     // Zip (optional)
     let zipPath = null;
@@ -73,4 +86,3 @@ class ZidAdapter {
 }
 
 module.exports = ZidAdapter;
-

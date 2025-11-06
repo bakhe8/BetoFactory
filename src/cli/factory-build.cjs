@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -21,6 +21,15 @@ async function processOne(folder) {
 
   const valid = await validator.validateSmartInputFolder(folder);
   if (!valid) throw new Error(`Schema validation failed for ${folder}`);
+
+  // Phase 10: run QA automation (best-effort, does not break build)
+  try {
+    const qa = require('../../tools/qa/qa-runner.cjs');
+    await qa.run(folder);
+    console.log(`QA: completed for ${folder}`);
+  } catch (e) {
+    console.warn('QA runner error:', e && e.message ? e.message : e);
+  }
 
   return true;
 }

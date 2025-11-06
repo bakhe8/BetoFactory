@@ -96,7 +96,7 @@ build/
       ├── templates/*.twig
       ├── theme.json
       └── beto-theme.zip
-canonical/<theme>/theme.json
+smart-input/canonical/<theme>/theme.json
 ```
 
 **Manifest Fields**

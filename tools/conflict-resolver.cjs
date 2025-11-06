@@ -3,7 +3,8 @@ const path = require('path');
 
 class ConflictResolver {
   resolveOutputConflict(folderName, type = 'build') {
-    const basePath = type === 'build' ? path.join('build', 'salla-themes', folderName) : path.join('canonical', folderName);
+    if (type !== 'build') return folderName; // keep canonical folder stable
+    const basePath = path.join('build', 'salla-themes', folderName);
     if (!fs.existsSync(basePath)) return folderName;
     const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     const newName = `${folderName}_${ts}`;
@@ -16,4 +17,3 @@ class ConflictResolver {
 }
 
 module.exports = new ConflictResolver();
-

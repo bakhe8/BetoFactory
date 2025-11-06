@@ -23,13 +23,19 @@ class SmartInputParser {
     const processingPath = `smart-input/processing/${folderName}`;
     if (!(await FSHelpers.exists(inputPath))) throw new Error(`Input folder does not exist: ${inputPath}`);
     this.logger.info(`Starting processing for folder: ${folderName}`);
-    await FSHelpers.moveSafe(inputPath, processingPath, { overwrite: true });
+    const consume = String(process.env.SMART_PARSER_CONSUME_INPUT || 'true').toLowerCase() !== 'false';
+    if (consume) {
+      await FSHelpers.moveSafe(inputPath, processingPath, { overwrite: true });
+    } else {
+      await fs.remove(processingPath).catch(()=>{});
+      await fs.copy(inputPath, processingPath, { overwrite: true });
+    }
     try {
       const res = await this.parseFolder(processingPath, outputPath, folderName);
-      // Resolve safe output names and write consolidated canonical under canonical/<canonicalName>/theme.json
+      // Resolve safe output names and write consolidated canonical under smart-input/canonical/<folder>/theme.json
       const conflictResolver = require('./conflict-resolver.cjs');
       const { canonicalName, buildName } = conflictResolver.ensureSafeOutput(folderName);
-      const desiredCanonicalDir = path.join('canonical', canonicalName);
+      const desiredCanonicalDir = path.join('smart-input','canonical', canonicalName);
       try {
         const consolidated = Array.isArray(res.results) && res.results.length ? res.results[0] : {};
         await FSHelpers.ensureDir(desiredCanonicalDir);
@@ -54,11 +60,13 @@ class SmartInputParser {
         await this._logFailure(folderName, 'schema', 'Canonical schema validation failed');
         throw new Error('Schema validation failed');
       }
-      // Run adapter with retry once on failure
+      // Run adapters (Phase 8: adapter manager; default to Salla only)
+      const platforms = (process.env.SMART_PLATFORMS || 'salla').split(',').map(s=>s.trim()).filter(Boolean);
       try {
-        const out = await this._generateSallaTheme(processingPath, desiredCanonicalDir);
-        // If build path needs a different resolved name, rename output and zip
-        if (out && out.themeOutputDir) {
+        const outs = await this._generateThemes(processingPath, desiredCanonicalDir, platforms);
+        const outSalla = outs.find(o=>o && o.platform==='salla' && o.out && o.out.themeOutputDir);
+        if (outSalla) {
+          const out = outSalla.out;
           const actualName = path.basename(out.themeOutputDir);
           if (actualName !== buildName) {
             try {
@@ -77,12 +85,8 @@ class SmartInputParser {
           }
         }
       } catch (e) {
-        this.logger.warn('Adapter generation failed once, retrying...');
-        try { await this._generateSallaTheme(processingPath, desiredCanonicalDir); }
-        catch (e2) {
-          await this._logFailure(folderName, 'adapter', e2 && e2.message ? e2.message : String(e2));
-          throw e2;
-        }
+        await this._logFailure(folderName, 'adapter', e && e.message ? e.message : String(e));
+        throw e;
       }
       // Optional post Twig validation (best-effort)
       await this._validateTwig().catch(async (e)=>{
@@ -129,14 +133,14 @@ class SmartInputParser {
   async parseFolder(processingPath, outputPath, folderName){
     const files = await fs.readdir(processingPath);
     const results = [];
-    for (const f of files){ if (path.extname(f).toLowerCase()==='.html'){ try { const r = await this.processHTMLFile(path.join(processingPath, f), outputPath, folderName); results.push(r);} catch(e){ this.logger.error(`Failed to process HTML file ${f}:`, e);} } }
+    for (const f of files){ if (path.extname(f).toLowerCase()==='.html'){ try { const r = await this.processHTMLFile(path.join(processingPath, f), outputPath, folderName, processingPath); results.push(r);} catch(e){ this.logger.error(`Failed to process HTML file ${f}:`, e);} } }
     await this.copyAssets(processingPath, outputPath);
     return { folder: folderName, processedFiles: results.length, results };
   }
-  async processHTMLFile(filePath, outputPath, folderName){
+  async processHTMLFile(filePath, outputPath, folderName, processingRoot){
     const html = await fs.readFile(filePath, 'utf-8');
     const parsed = this.htmlParser.parse(html);
-    const enhanced = this.enhanceParsing(parsed, path.basename(filePath), html);
+    const enhanced = this.enhanceParsing(parsed, path.basename(filePath), html, filePath, processingRoot);
     // Extract basic styles info from linked CSS files (colors, fonts)
     try {
       const $ = require('cheerio').load(html);
@@ -215,7 +219,7 @@ class SmartInputParser {
     this.logger.info(`Processed: ${filePath} -> ${outFile}`);
     return enhanced;
   }
-  enhanceParsing(parsedData, fileName, htmlContent){
+  enhanceParsing(parsedData, fileName, htmlContent, fileAbsolutePath, processingRoot){
     const $ = require('cheerio').load(htmlContent);
     const base = {
       layout: { header: 'default', footer: 'default' },
@@ -278,7 +282,24 @@ class SmartInputParser {
     schemaScripts.forEach(eachSchema);
     merged.meta = { title: pageTitle, tags: metaTags, schema: schemaScripts, normalized: norm };
 
-    // Collect CSS url(...) references from linked stylesheets (model-only, sync scan)
+    // Helper to resolve asset refs to canonical-relative paths
+    const resolveToCanonical = (ref, baseDir) => {
+      if (!ref || typeof ref !== 'string') return ref;
+      const external = /^https?:\/\//i.test(ref) || ref.startsWith('//') || /^data:/i.test(ref);
+      if (external) return ref;
+      const isRoot = ref.startsWith('/');
+      const abs = isRoot
+        ? path.normalize(path.join(processingRoot || '', ref.replace(/^\//, '')))
+        : path.normalize(path.join(baseDir || path.dirname(fileAbsolutePath || ''), ref));
+      if (!processingRoot) return ref;
+      let rel = path.relative(processingRoot, abs);
+      rel = rel.replace(/\\/g, '/');
+      // keep within processing root; otherwise fall back to normalized original
+      if (rel.startsWith('..')) return ref.replace(/\\/g,'/');
+      return rel;
+    };
+
+    // Collect CSS url(...) references from linked stylesheets (model-only, sync scan) with proper base resolution
     try {
       const hrefs = [];
       $('link[rel="stylesheet"]').each((_, el) => {
@@ -286,6 +307,7 @@ class SmartInputParser {
         if (href) hrefs.push(href);
       });
       const visited = new Set();
+      const collectedFromCss = [];
       const readCssRecursiveSync = (absPath) => {
         const norm = path.normalize(absPath);
         if (visited.has(norm)) return '';
@@ -294,6 +316,14 @@ class SmartInputParser {
           const css = fs.readFileSync(norm, 'utf-8');
           const imports = Array.from(css.matchAll(/@import\s+(?:url\()?['"]?([^'"\)\n]+)['"]?\)?\s*;/gi)).map(m=>m[1]);
           let bundled = css;
+          // Collect url(...) refs for this CSS file against its own base dir
+          const baseDir = path.dirname(norm);
+          for (const m of css.matchAll(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/gi)){
+            const raw = (m[1] || '').trim();
+            if (!raw || /^data:/i.test(raw)) continue;
+            const resolved = resolveToCanonical(raw, baseDir);
+            collectedFromCss.push(resolved);
+          }
           for (const imp of imports){
             if (/^https?:\/\//i.test(imp) || imp.startsWith('//')) continue;
             const impAbs = path.normalize(path.isAbsolute(imp) ? imp : path.join(path.dirname(norm), imp));
@@ -305,22 +335,47 @@ class SmartInputParser {
       const cssBundle = [];
       for (const href of hrefs){
         if (/^https?:\/\//i.test(href) || href.startsWith('//')) continue;
-        const abs = path.normalize(path.isAbsolute(href) ? href : path.join(path.dirname(path.join('smart-input','processing', fileName)), href));
+        // Resolve href relative to HTML file directory
+        const htmlDir = path.dirname(fileAbsolutePath || '');
+        const abs = path.normalize(path.isAbsolute(href) ? path.join(process.cwd(), href) : path.join(htmlDir, href));
         const content = readCssRecursiveSync(abs);
         if (content) cssBundle.push(content);
       }
-      if (cssBundle.length){
-        const refs = new Set();
-        for (const cssText of cssBundle){
-          for (const m of cssText.matchAll(/url\(\s*['"]?([^'"\)]+)['"]?\s*\)/gi)){
-            const ref = (m[1] || '').trim();
-            if (!ref || /^data:/i.test(ref)) continue;
-            refs.add(ref);
-          }
-        }
+      if (collectedFromCss.length){
         if (!Array.isArray(merged.assets.images)) merged.assets.images = [];
-        merged.assets.images.push(...Array.from(refs));
+        merged.assets.images.push(...collectedFromCss);
       }
+    } catch {}
+
+    // Collect and resolve asset refs from HTML tags
+    try {
+      const htmlDir = path.dirname(fileAbsolutePath || '');
+      // <img src>
+      $('img[src]').each((_, el) => {
+        const src = ($(el).attr('src') || '').trim();
+        if (!src) return;
+        const resolved = resolveToCanonical(src, htmlDir);
+        merged.assets.images.push(resolved);
+      });
+      // <link href> (stylesheets and icons)
+      $('link[href]').each((_, el) => {
+        const href = ($(el).attr('href') || '').trim();
+        if (!href) return;
+        const rel = (($(el).attr('rel') || '').toLowerCase());
+        const resolved = resolveToCanonical(href, htmlDir);
+        if (rel.includes('stylesheet')) {
+          merged.assets.styles.push(resolved);
+        } else {
+          merged.assets.images.push(resolved);
+        }
+      });
+      // <script src>
+      $('script[src]').each((_, el) => {
+        const src = ($(el).attr('src') || '').trim();
+        if (!src) return;
+        const resolved = resolveToCanonical(src, htmlDir);
+        merged.assets.scripts.push(resolved);
+      });
     } catch {}
 
     // Normalize asset references (forward slashes, remove leading ./, compact paths)
@@ -339,9 +394,9 @@ class SmartInputParser {
       } catch {}
       return v;
     };
-    if (merged.assets && Array.isArray(merged.assets.images)) merged.assets.images = merged.assets.images.map(normalizeRef);
-    if (merged.assets && Array.isArray(merged.assets.styles)) merged.assets.styles = merged.assets.styles.map(normalizeRef);
-    if (merged.assets && Array.isArray(merged.assets.scripts)) merged.assets.scripts = merged.assets.scripts.map(normalizeRef);
+    if (merged.assets && Array.isArray(merged.assets.images)) merged.assets.images = Array.from(new Set(merged.assets.images.map(normalizeRef)));
+    if (merged.assets && Array.isArray(merged.assets.styles)) merged.assets.styles = Array.from(new Set(merged.assets.styles.map(normalizeRef)));
+    if (merged.assets && Array.isArray(merged.assets.scripts)) merged.assets.scripts = Array.from(new Set(merged.assets.scripts.map(normalizeRef)));
 
     return merged;
   }
@@ -393,9 +448,7 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath, 
   // Use namespaced adapter to generate build/salla-themes/<folder>/ and zip
   const folderName = path.basename(processingPath);
   // Prefer root canonical/<folder> if present, else fallback to smart-input canonical
-  const canonicalDirRoot = overrideCanonicalDir || path.join('canonical', folderName);
-  const canonicalDirSmart = path.join('smart-input','canonical', folderName);
-  const canonicalDir = (await fs.pathExists(canonicalDirRoot)) ? canonicalDirRoot : canonicalDirSmart;
+  const canonicalDir = overrideCanonicalDir || path.join('smart-input','canonical', folderName);
   const exists = await fs.pathExists(canonicalDir);
   if (!exists) {
     this.logger.warn('Canonical directory not found for adapter: ' + canonicalDir);
@@ -411,6 +464,31 @@ SmartInputParser.prototype._generateSallaTheme = async function(processingPath, 
     this.logger.error('Adapter generation failed: ' + (e && e.message ? e.message : e));
     throw e;
   }
+}
+
+// Phase 8: multi-platform adapter generation using AdapterManager
+SmartInputParser.prototype._generateThemes = async function(processingPath, overrideCanonicalDir, platforms){
+  const AdapterManager = require('../core/adapter-manager.cjs');
+  const mgr = new AdapterManager();
+  const folderName = path.basename(processingPath);
+  const canonicalDir = overrideCanonicalDir || path.join('smart-input','canonical', folderName);
+  const exists = await fs.pathExists(canonicalDir);
+  if (!exists) {
+    this.logger.warn('Canonical directory not found for adapter: ' + canonicalDir);
+    return [];
+  }
+  const outs = [];
+  for (const pf of platforms){
+    try {
+      const out = await mgr.generate(pf, canonicalDir);
+      this.logger.success(`${pf} theme generated at ${out && out.themeOutputDir ? out.themeOutputDir : '(no path reported)'}`);
+      outs.push({ platform: pf, out });
+    } catch (e) {
+      this.logger.error(`Adapter generation failed for ${pf}: ${e && e.message ? e.message : e}`);
+      outs.push({ platform: pf, error: e });
+    }
+  }
+  return outs;
 }
 
 SmartInputParser.prototype._validateTwig = async function(){

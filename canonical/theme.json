@@ -5,30 +5,53 @@
   },
   "components": {},
   "assets": {
-    "images": [],
-    "styles": [],
-    "scripts": []
+    "images": [
+      "https:/fonts.googleapis.com",
+      "https:/fonts.gstatic.com"
+    ],
+    "styles": [
+      "https:/fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap"
+    ],
+    "scripts": [
+      "https:/cdn.tailwindcss.com",
+      "https:/cdn.jsdelivr.net/npm/chart.js"
+    ]
   },
   "sections": [],
   "metadata": {
-    "sourceFile": "index.html",
-    "processedAt": "2025-11-06T03:37:15.984Z",
+    "sourceFile": "1.html",
+    "processedAt": "2025-11-06T22:58:25.823Z",
     "parserVersion": "2.1.0-smart"
   },
   "smartFeatures": {
-    "componentCount": 1
+    "componentCount": 0
   },
   "meta": {
-    "title": "Jest",
-    "tags": {},
+    "title": "لوحة معلومات تطوير ملصقات القصص العربية",
+    "tags": {
+      "viewport": "width=device-width, initial-scale=1.0"
+    },
     "schema": [],
     "normalized": {
       "organizations": [],
       "products": []
     },
     "styles": {
-      "colors": [],
-      "fonts": [],
+      "colors": [
+        "#fdf8f0",
+        "#4a4a4a",
+        "#e5a96f",
+        "#ffffff",
+        "#eae0d5",
+        "rgba(0, 0, 0, 0.05)",
+        "rgba(0, 0, 0, 0.03)",
+        "rgba(0, 0, 0, 0.07)",
+        "rgba(0, 0, 0, 0.04)"
+      ],
+      "fonts": [
+        "Tajawal",
+        "sans-serif"
+      ],
       "cssVars": {}
     }
   }

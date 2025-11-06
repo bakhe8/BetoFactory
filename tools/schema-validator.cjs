@@ -32,7 +32,8 @@ class SchemaValidator {
       return false;
     }
     const files = await fs.readdir(canonicalPath);
-    const jsonFiles = files.filter(f => f.endsWith('.json') && f !== 'qa-summary.json' && f !== 'assets-manifest.json');
+    const skip = new Set(['qa-summary.json','assets-manifest.json','meta.json']);
+    const jsonFiles = files.filter(f => f.endsWith('.json') && !skip.has(f));
     let validCount = 0;
     for (const f of jsonFiles) { const result = this.validateFile(path.join(canonicalPath, f)); if (result.valid) validCount++; }
     console.log('Smart Input Validation: ' + validCount + '/' + jsonFiles.length + ' valid files in ' + folderName);
@@ -41,4 +42,3 @@ class SchemaValidator {
 }
 
 module.exports = new SchemaValidator();
-

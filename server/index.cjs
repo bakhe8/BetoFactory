@@ -109,7 +109,16 @@ app.post('/api/build/:name', requireAuth, async (req, res) => {
   const name = req.params.name;
   const startedAt = Date.now();
   buildStart.set(name, startedAt);
-  const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: ['ignore','pipe','pipe'], shell: process.platform === 'win32' });
+  // Support multi-platform builds via SMART_PLATFORMS from client
+  let platforms = null;
+  try {
+    const pf = (req.body && (req.body.platforms ?? req.body.SMART_PLATFORMS)) || req.query.platforms;
+    if (Array.isArray(pf)) platforms = pf.join(',');
+    else if (typeof pf === 'string') platforms = pf;
+  } catch {}
+  const childEnv = { ...process.env };
+  if (platforms) childEnv.SMART_PLATFORMS = platforms;
+  const proc = spawn(process.execPath, ['src/cli/factory-build.cjs', name], { stdio: ['ignore','pipe','pipe'], shell: process.platform === 'win32', env: childEnv });
   proc.stdout.on('data', d => { io.emit('build:log', { name, stream: 'stdout', data: d.toString() }); });
   proc.stderr.on('data', d => { io.emit('build:log', { name, stream: 'stderr', data: d.toString() }); });
   io.emit('build:start', { name, startedAt });
