@@ -144,6 +144,18 @@ function MetricsPanel(){
     </div>
   )
 }
+function QAView({ name }){
+  const [qa, setQa] = useState(null)
+  useEffect(() => { fetch(`/api/qa/${encodeURIComponent(name)}`).then(r=>r.ok?r.json():null).then(setQa) }, [name])
+  if (!qa) return <div className="text-slate-500">No QA report yet</div>
+  const badge = qa.status === 'passed' ? 'bg-emerald-600' : qa.status === 'failed' ? 'bg-rose-600' : 'bg-slate-500'
+  return (
+    <div>
+      <div className={`inline-block text-white text-xs px-2 py-1 rounded ${badge}`}>QA {qa.status}</div>
+      <pre className="text-xs overflow-auto h-64 mt-2">{JSON.stringify(qa, null, 2)}</pre>
+    </div>
+  )
+}
 function App(){
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(null)
@@ -183,13 +195,19 @@ function App(){
             )}
           </div>
         )}
-        <LogConsole />
+        <div className="bg-white border rounded p-3 md:col-span-2">
+  <h3 className="font-semibold mb-2">QA Report</h3>
+  {!details?.name ? null : (
+    <QAView name={selected} />
+  )}
+</div>\n<LogConsole />
       </main>
     </div>
   )
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
 
 
