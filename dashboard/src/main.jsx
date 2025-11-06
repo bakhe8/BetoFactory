@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react'
+﻿import React, { useEffect, useState, useRef } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, Legend } from 'recharts'
 import { createRoot } from 'react-dom/client'
 import { io } from 'socket.io-client'
 
@@ -138,3 +139,4 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
