@@ -158,6 +158,7 @@ streamLogs(path.join('logs','parser.log'), 'log:parser');
 streamLogs(path.join('logs','errors.log'), 'log:errors');
 
 // Serve dashboard (when built by Vite preview or static)
+app.use('/qa', express.static(path.join(__dirname, '..', 'qa')));
 app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'dist')));
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
@@ -191,3 +192,4 @@ app.get('/api/qa/:name', async (req, res) => {
   const json = await fs.readJson(file).catch(()=>null);
   res.json(json || { ok:false });
 });
+
