@@ -177,7 +177,7 @@ function App(){
                 </div>
                 <div className="bg-white border rounded p-3 md:col-span-2">
                   <h3 className="font-semibold mb-2">Build outputs</h3>
-                  <pre className="text-xs overflow-auto h-64">{JSON.stringify(details.builds, null, 2)}</pre>
+                  <BuildFiles details={details} selected={selected} />
                 </div>
               </div>
             )}
@@ -190,5 +190,6 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
 
