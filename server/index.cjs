@@ -1,4 +1,5 @@
-﻿const express = require('express');
+﻿require('dotenv').config();
+const express = require('express');
 const http = require('http');
 const path = require('path');
 const fs = require('fs-extra');
@@ -7,6 +8,7 @@ const multer = require('multer');
 const unzipper = require('unzipper');
 const { Server } = require('socket.io');
 
+const TOKEN = process.env.FACTORY_TOKEN || '';
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
@@ -150,4 +152,5 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
 
