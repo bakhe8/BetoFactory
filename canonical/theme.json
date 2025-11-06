@@ -12,14 +12,14 @@
   "sections": [],
   "metadata": {
     "sourceFile": "index.html",
-    "processedAt": "2025-11-06T03:30:13.225Z",
+    "processedAt": "2025-11-06T03:37:15.984Z",
     "parserVersion": "2.1.0-smart"
   },
   "smartFeatures": {
-    "componentCount": 0
+    "componentCount": 1
   },
   "meta": {
-    "title": "T",
+    "title": "Jest",
     "tags": {},
     "schema": [],
     "normalized": {
@@ -27,17 +27,8 @@
       "products": []
     },
     "styles": {
-      "colors": [
-        "#fff",
-        "rgb(12,34,56)"
-      ],
-      "fonts": [
-        "Inter",
-        "Arial",
-        "sans-serif",
-        "MyFont",
-        "font-face"
-      ],
+      "colors": [],
+      "fonts": [],
       "cssVars": {}
     }
   }
