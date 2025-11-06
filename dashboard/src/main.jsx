@@ -282,7 +282,7 @@ function QASummary({ name }){
     </div>
   )
 }
-function QACanonicalSummary({ qa, onRebuild, rebuilding }){
+function QACanonicalSummary({ qa, onRebuild, rebuilding, onPromote }){
   if (!qa) return <div className="text-slate-500">No QA summary found</div>
   const rows = [
     { k: 'filesProcessed', v: qa.filesProcessed },
@@ -298,11 +298,16 @@ function QACanonicalSummary({ qa, onRebuild, rebuilding }){
     <div className="border rounded p-3">
       <div className="flex items-center justify-between mb-2">
         <div className="font-semibold">QA Summary</div>
-        {onRebuild && (
-          <button onClick={onRebuild} disabled={rebuilding} className="px-2 py-1 bg-emerald-600 text-white rounded text-xs disabled:opacity-50">
-            {rebuilding ? 'Rebuilding…' : 'Rebuild'}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {onPromote && (
+            <button onClick={onPromote} className="px-2 py-1 bg-slate-200 rounded text-xs">Promote baseline</button>
+          )}
+          {onRebuild && (
+            <button onClick={onRebuild} disabled={rebuilding} className="px-2 py-1 bg-emerald-600 text-white rounded text-xs disabled:opacity-50">
+              {rebuilding ? 'Rebuilding…' : 'Rebuild'}
+            </button>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
         {rows.map(r => (
@@ -415,7 +420,12 @@ function App(){
                   <pre className="text-xs overflow-auto h-64">{JSON.stringify(details.themeJson, null, 2)}</pre>
                 </div>
                 <div className="bg-white border rounded p-3">
-                  <QACanonicalSummary qa={details.qa} onRebuild={rebuild} rebuilding={rebuilding} />
+                  <QACanonicalSummary qa={details.qa} onRebuild={rebuild} rebuilding={rebuilding} onPromote={async ()=>{
+                    try {
+                      await fetch(`/api/qa/promote/${encodeURIComponent(selected)}`, { method: 'POST' })
+                      alert('Baselines promoted')
+                    } catch {}
+                  }} />
                   <div className="h-3" />
                   <h3 className="font-semibold mb-1">Meta</h3>
                   <pre className="text-xs overflow-auto h-40">{JSON.stringify(details.meta || {}, null, 2)}</pre>

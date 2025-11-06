@@ -51,8 +51,16 @@ async function reconstruct(platform, canonical, outDir){
     const body = platform === 'shopify' ? `<!-- ${name} section -->\n<div class="${name}">{{ '${name}' }}</div>\n` : `{# ${name} section #}\n<div class="${name}">{{ '${name}' }}</div>\n`;
     await ensureFile(outDir, rel, banner + body);
   }
+  // Ensure a default index template exists for platform expectations
+  try {
+    const ext = mapping.extension || (platform === 'shopify' ? '.liquid' : platform === 'salla' ? '.twig' : '.jinja');
+    const tplDir = mapping.templateDir || 'templates';
+    const indexRel = path.join(tplDir, `index${ext}`);
+    const banner = `<!-- Auto-generated index for ${platform} -->\n`;
+    const body = platform === 'shopify' ? `{{ content_for_layout }}` : `{# index #}\n{% block content %}{% endblock %}`;
+    await ensureFile(outDir, indexRel, banner + body);
+  } catch {}
   return true;
 }
 
 module.exports = { reconstruct };
-

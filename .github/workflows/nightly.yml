@@ -1,0 +1,41 @@
+name: Nightly Stability + QA
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install
+        run: npm ci || npm install
+      - name: Run nightly stability + QA
+        env:
+          SMART_PARSER_CONSUME_INPUT: 'false'
+          SMART_PLATFORMS: 'salla'
+        run: node tools/ci/nightly.cjs || true
+      - name: Upload QA + logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-artifacts
+          path: |
+            logs/
+            qa/reports/
+            qa/screenshots/
+          retention-days: 7
+

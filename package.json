@@ -34,7 +34,7 @@
                     "salla:publish:ns":  "node tools/salla-ns.cjs publish",
                     "process-all":  "npm run parse \u0026\u0026 npm run validate",
                     "smart-batch":  "node src/cli/smart-cli.cjs batch-parse",
-                    "stability:daily":  "node tools/stability-runner.cjs --cycles=5 --no-consume",
+                    "stability:daily": "node tools/stability-runner.cjs --cycles=5 --no-consume",
                     "adapt:salla":  "node core/adapter-salla.js",
                     "assets":  "node core/assets.js",
                     "clean":  "node core/cleaner.js",
@@ -119,5 +119,6 @@
              },
     "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
+
 
 

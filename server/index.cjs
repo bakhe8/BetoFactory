@@ -231,6 +231,28 @@ app.get('/api/qa/:name', async (req, res) => {
   res.json(json || { ok:false });
 });
 
+// Promote current screenshots to visual baseline for a theme
+app.post('/api/qa/promote/:name', async (req, res) => {
+  try {
+    const name = req.params.name;
+    const srcDir = path.join('qa','screenshots', name);
+    const dstDir = path.join('qa','reference','screenshots', name);
+    await fs.ensureDir(dstDir);
+    const files = await fs.readdir(srcDir).catch(()=>[]);
+    let promoted = 0;
+    for (const f of files){
+      if (!/^current-/.test(f) || !/\.png$/i.test(f)) continue;
+      const label = f.replace(/^current-/, '').replace(/\.png$/i, '');
+      const dst = path.join(dstDir, `baseline-${label}.png`);
+      await fs.copy(path.join(srcDir, f), dst, { overwrite: true });
+      promoted++;
+    }
+    return res.json({ ok:true, promoted });
+  } catch (e) {
+    return res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) });
+  }
+});
+
 
 
 
