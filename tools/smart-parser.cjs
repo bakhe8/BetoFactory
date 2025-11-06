@@ -250,6 +250,27 @@ class SmartInputParser {
     };
     schemaScripts.forEach(eachSchema);
     merged.meta = { title: pageTitle, tags: metaTags, schema: schemaScripts, normalized: norm };
+
+    // Normalize asset references (forward slashes, remove leading ./, compact paths)
+    const normalizeRef = (p) => {
+      if (!p || typeof p !== 'string') return p;
+      let v = p.replace(/\\/g, '/');
+      if (v.startsWith('./')) v = v.slice(2);
+      // compact duplicate slashes
+      v = v.replace(/\/+/g, '/');
+      // avoid absolute http(s)
+      if (/^https?:\/\//i.test(v) || v.startsWith('//')) return v;
+      // basic posix normalize without attempting to resolve against cwd
+      try {
+        const posix = require('path').posix;
+        v = posix.normalize(v);
+      } catch {}
+      return v;
+    };
+    if (merged.assets && Array.isArray(merged.assets.images)) merged.assets.images = merged.assets.images.map(normalizeRef);
+    if (merged.assets && Array.isArray(merged.assets.styles)) merged.assets.styles = merged.assets.styles.map(normalizeRef);
+    if (merged.assets && Array.isArray(merged.assets.scripts)) merged.assets.scripts = merged.assets.scripts.map(normalizeRef);
+
     return merged;
   }
   async copyAssets(src, dest){
