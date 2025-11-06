@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://beto-factory.local/schemas/adapter-config.schema.json",
+  "title": "Adapter Registry Config",
+  "type": "object",
+  "properties": {
+    "adapters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "module": { "type": "string" },
+          "outputDir": { "type": "string" },
+          "zip": { "type": "boolean" },
+          "engine": { "type": "string" }
+        },
+        "required": ["module", "outputDir"]
+      }
+    }
+  },
+  "required": ["adapters"]
+}
+

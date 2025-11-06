@@ -1,0 +1,23 @@
+{
+  "adapters": {
+    "salla": {
+      "module": "./adapters/salla/index.cjs",
+      "outputDir": "build/salla-themes",
+      "zip": true,
+      "engine": "twig"
+    },
+    "zid": {
+      "module": "./adapters/zid/index.cjs",
+      "outputDir": "build/zid-themes",
+      "zip": true,
+      "engine": "jinja"
+    },
+    "shopify": {
+      "module": "./adapters/shopify/index.cjs",
+      "outputDir": "build/shopify-themes",
+      "zip": true,
+      "engine": "liquid"
+    }
+  }
+}
+
