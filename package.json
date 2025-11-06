@@ -1,110 +1,114 @@
-{
-    "name": "beto-factory",
-    "version": "2.1.0",
-    "description": "Beto Factory — Core Edition (Salla-only)",
-    "type": "module",
-    "private": true,
-    "scripts": {
-        "canonicalize": "node core/input.js",
-        "adapt:salla": "node core/adapter-salla.js",
-        "adapt:platform": "npm run adapt:salla",
-        "assets": "node core/assets.js",
-        "locales": "node core/locales.js",
-        "clean": "node core/cleaner.js",
-        "export": "node core/export.js",
-        "salla:validate": "node core/salla-cli.js theme validate",
-        "salla:lint": "node core/salla-cli.js theme lint",
-        "salla:pre-push": "node core/salla-cli.js theme pre-push",
-        "salla:push": "node core/salla-cli.js theme push",
-        "salla:publish": "node core/salla-cli.js theme publish",
-        "salla:dev": "node core/salla-cli.js theme watch",
-        "watch:build": "node core/watch-build.cjs",
-        "build": "npm run canonicalize && npm run adapt:salla && npm run assets && npm run locales && npm run salla:validate && npm run salla:lint && npm run clean && npm run export",
-        "test:canonical": "node tests/test-canonical.js",
-        "test:adapter": "node tests/test-adapter.js",
-        "test:export": "node tests/test-export.js",
-        "test:salla-cli": "npm run salla:validate && npm run salla:lint",
-        "test:twilight": "node tests/test-twilight.js",
-        "test": "npm run test:canonical && npm run test:adapter && npm run test:twilight && node tests/test-section-schema.js && npm run test:export",
-        "lint": "eslint .",
-        "format": "prettier -w .",
-        "preview": "node preview/server.js",
-        "validate:salla": "node core/validate-salla.js",
-        "parse": "node tools/smart-parser.cjs",
-        "watch:input": "node tools/folderWatcher.cjs",
-        "validate": "node tools/schema-validator.cjs",
-        "watch": "npm run watch:input",
-        "dev": "npm run watch:input",
-        "process-all": "npm run parse && npm run validate",
-        "smart-validate": "node tools/validate-smart.cjs",
-        "smart-parse": "node tools/smart-parser.cjs",
-        "smart-watch": "node tools/smart-watcher.cjs",
-        "smart-init": "node tools/smart-init.js",
-        "smart": "node src/cli/minimal-cli.cjs",
-        "smart-batch": "node src/cli/smart-cli.cjs batch-parse",
-        "smart-clean": "node tools/cleanup.cjs",
-        "smart-all": "npm run smart-batch && npm run smart-clean",
-        "test:fast": "jest -c jest.config.cjs",
-        "bridge:export": "node tools/adapter-bridge.cjs",
-        "canonical:select": "node tools/select-canonical.cjs",
-        "smart-watch:simple": "node tools/simple-watcher.cjs",
-        "scan-existing": "node src/cli/smart-cli.cjs scan-existing",
-        "factory:build": "node src/cli/factory-build.cjs",
-        "salla:serve:ns": "node tools/salla-ns.cjs watch",
-        "salla:validate:ns": "node tools/salla-ns.cjs validate",
-        "salla:publish:ns": "node tools/salla-ns.cjs publish",
-        "status": "node scripts/status/status-folder.cjs && npx doctoc docs/factory-progress.md",
-        "adapt:cli": "node src/cli/adapter-cli.cjs",
-        "dashboard:dev": "vite dashboard",
-        "server": "node server/index.cjs"
-    },
-    "bin": {
-        "beto-smart": "src/cli/smart-cli.js"
-    },
-    "dependencies": {
-        "ajv": "^8.17.1",
-        "ajv-formats": "^2.1.1",
-        "archiver": "^7.0.1",
-        "chalk": "^5.6.2",
-        "cheerio": "^1.1.2",
-        "commander": "^11.1.0",
-        "express": "^4.19.2",
-        "fs-extra": "^11.2.0",
-        "glob": "^10.4.5",
-        "multer": "^1.4.5-lts.1",
-        "sharp": "^0.33.4",
-        "socket": {
-            "io": "^4.8.1"
-        },
-        "unzipper": "^0.10.14"
-    },
-    "devDependencies": {
-        "@salla.sa/cli": "^3.2.25",
-        "chokidar": "^4.0.3",
-        "eslint": "^9.39.1",
-        "jest": "^29.7.0",
-        "prettier": "^3.6.2",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
-        "socket": {
-            "io-client": "^4.8.1"
-        },
-        "vite": "^5.4.10"
-    },
-    "main": "cli.js",
-    "directories": {
-        "doc": "docs",
-        "test": "tests"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/bakhe8/BetoFactory.git"
-    },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/bakhe8/BetoFactory/issues"
-    },
-    "homepage": "https://github.com/bakhe8/BetoFactory#readme"
+﻿{
+    "name":  "beto-factory",
+    "version":  "2.1.0",
+    "description":  "Beto Factory — Core Edition (Salla-only)",
+    "type":  "module",
+    "private":  true,
+    "scripts":  {
+                    "canonicalize":  "node core/input.js",
+                    "adapt:salla":  "node core/adapter-salla.js",
+                    "adapt:platform":  "npm run adapt:salla",
+                    "assets":  "node core/assets.js",
+                    "locales":  "node core/locales.js",
+                    "clean":  "node core/cleaner.js",
+                    "export":  "node core/export.js",
+                    "salla:validate":  "node core/salla-cli.js theme validate",
+                    "salla:lint":  "node core/salla-cli.js theme lint",
+                    "salla:pre-push":  "node core/salla-cli.js theme pre-push",
+                    "salla:push":  "node core/salla-cli.js theme push",
+                    "salla:publish":  "node core/salla-cli.js theme publish",
+                    "salla:dev":  "node core/salla-cli.js theme watch",
+                    "watch:build":  "node core/watch-build.cjs",
+                    "build":  "npm run canonicalize \u0026\u0026 npm run adapt:salla \u0026\u0026 npm run assets \u0026\u0026 npm run locales \u0026\u0026 npm run salla:validate \u0026\u0026 npm run salla:lint \u0026\u0026 npm run clean \u0026\u0026 npm run export",
+                    "test:canonical":  "node tests/test-canonical.js",
+                    "test:adapter":  "node tests/test-adapter.js",
+                    "test:export":  "node tests/test-export.js",
+                    "test:salla-cli":  "npm run salla:validate \u0026\u0026 npm run salla:lint",
+                    "test:twilight":  "node tests/test-twilight.js",
+                    "test":  "npm run test:canonical \u0026\u0026 npm run test:adapter \u0026\u0026 npm run test:twilight \u0026\u0026 node tests/test-section-schema.js \u0026\u0026 npm run test:export",
+                    "lint":  "eslint .",
+                    "format":  "prettier -w .",
+                    "preview":  "node preview/server.js",
+                    "validate:salla":  "node core/validate-salla.js",
+                    "parse":  "node tools/smart-parser.cjs",
+                    "watch:input":  "node tools/folderWatcher.cjs",
+                    "validate":  "node tools/schema-validator.cjs",
+                    "watch":  "npm run watch:input",
+                    "dev":  "npm run watch:input",
+                    "process-all":  "npm run parse \u0026\u0026 npm run validate",
+                    "smart-validate":  "node tools/validate-smart.cjs",
+                    "smart-parse":  "node tools/smart-parser.cjs",
+                    "smart-watch":  "node tools/smart-watcher.cjs",
+                    "smart-init":  "node tools/smart-init.js",
+                    "smart":  "node src/cli/minimal-cli.cjs",
+                    "smart-batch":  "node src/cli/smart-cli.cjs batch-parse",
+                    "smart-clean":  "node tools/cleanup.cjs",
+                    "smart-all":  "npm run smart-batch \u0026\u0026 npm run smart-clean",
+                    "test:fast":  "jest -c jest.config.cjs",
+                    "bridge:export":  "node tools/adapter-bridge.cjs",
+                    "canonical:select":  "node tools/select-canonical.cjs",
+                    "smart-watch:simple":  "node tools/simple-watcher.cjs",
+                    "scan-existing":  "node src/cli/smart-cli.cjs scan-existing",
+                    "factory:build":  "node src/cli/factory-build.cjs",
+                    "salla:serve:ns":  "node tools/salla-ns.cjs watch",
+                    "salla:validate:ns":  "node tools/salla-ns.cjs validate",
+                    "salla:publish:ns":  "node tools/salla-ns.cjs publish",
+                    "status":  "node scripts/status/status-folder.cjs \u0026\u0026 npx doctoc docs/factory-progress.md",
+                    "adapt:cli":  "node src/cli/adapter-cli.cjs",
+                    "dashboard:dev":  "vite dashboard",
+                    "server":  "node server/index.cjs",
+                    "dashboard":  "concurrently -k \"npm:server\" \"npm:dashboard:dev\""
+                },
+    "bin":  {
+                "beto-smart":  "src/cli/smart-cli.js"
+            },
+    "dependencies":  {
+                         "ajv":  "^8.17.1",
+                         "ajv-formats":  "^2.1.1",
+                         "archiver":  "^7.0.1",
+                         "chalk":  "^5.6.2",
+                         "cheerio":  "^1.1.2",
+                         "commander":  "^11.1.0",
+                         "express":  "^4.19.2",
+                         "fs-extra":  "^11.2.0",
+                         "glob":  "^10.4.5",
+                         "multer":  "^1.4.5-lts.1",
+                         "sharp":  "^0.33.4",
+                         "socket":  {
+                                        "io":  "^4.8.1"
+                                    },
+                         "unzipper":  "^0.10.14"
+                     },
+    "devDependencies":  {
+                            "@salla.sa/cli":  "^3.2.25",
+                            "chokidar":  "^4.0.3",
+                            "concurrently":  "^9.0.1",
+                            "eslint":  "^9.39.1",
+                            "jest":  "^29.7.0",
+                            "prettier":  "^3.6.2",
+                            "react":  "^18.3.1",
+                            "react-dom":  "^18.3.1",
+                            "socket":  {
+                                           "io-client":  "^4.8.1"
+                                       },
+                            "vite":  "^5.4.10"
+                        },
+    "main":  "cli.js",
+    "directories":  {
+                        "doc":  "docs",
+                        "test":  "tests"
+                    },
+    "repository":  {
+                       "type":  "git",
+                       "url":  "git+https://github.com/bakhe8/BetoFactory.git"
+                   },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "bugs":  {
+                 "url":  "https://github.com/bakhe8/BetoFactory/issues"
+             },
+    "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
