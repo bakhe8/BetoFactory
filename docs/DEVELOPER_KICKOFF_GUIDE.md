@@ -1,4 +1,6 @@
-# 🧱 **Beto Factory — Core Edition (Salla-Only)**  
+﻿# 🔄 At‑a‑glance (v2.2.0)\r\n\r\n- Canonical lives under smart-input/canonical/<folder> (not root)\r\n- Build + QA: 
+ode src/cli/factory-build.cjs <folder>\r\n- Multi‑platform via env: SMART_PLATFORMS=salla,zid,shopify\r\n- Dashboard: 
+pm run dashboard → build, QA, downloads, progress\r\n- QA outputs in qa/reports + qa/screenshots (promote baseline supported)\r\n\r\n---\r\n# 🧱 **Beto Factory — Core Edition (Salla-Only)**  
 ### *Developer Kickoff Guide*
 
 > **Purpose:**  
@@ -233,3 +235,4 @@ git push --tags
 > Begin with `core/input.js` and `core/canonical.js`.  
 > The first milestone: successfully convert `/smart-input/input/<folder>/index.html` → `/smart-input/canonical/<folder>/theme.json`.  
 > Once stable, proceed to implement `adapter-salla.js`.
+

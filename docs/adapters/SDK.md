@@ -1,11 +1,11 @@
-# Beto Factory Adapter SDK (Draft)
+﻿# Beto Factory Adapter SDK (Draft)
 
 This SDK describes how to add a new platform adapter that converts canonical JSON into a deployable theme.
 
 ## Concepts
 - Canonical folder: `smart-input/canonical/<folder>` containing `theme.json` (+ optional `meta.json`, `qa-summary.json`). Root `canonical/` is used only as a temporary staging area by the adapter.
 - Adapter registry: `config/adapters.json` lists supported platforms and module entry points.
-- Adapter Manager: `core/adapter-manager.cjs` loads adapters and invokes generation.
+- Adapter Manager: `core/adapter-manager.cjs` loads adapters and invokes generation; the factory build uses it (see `SMART_PLATFORMS`).
 
 ## Adapter Interface
 Implement a Node class that exports either of the following methods:
@@ -47,4 +47,5 @@ Integrate platform validators (e.g., `salla theme validate`, `shopify theme chec
 ## Tips
 - Keep platform-specific logic inside the adapter folder.
 - Do not mutate canonical files; copy and transform into build outputs.
-- Write a small manifest (e.g., `manifest.json`) with folder, timestamp, and canonical path.
+- Emit `manifest.json` with the unified fields: `folder`, `platform`, `timestamp`, `sourceCanonicalPath`, `sectionsDetected`, `componentsExtracted`, `assetsFound`, `assets`. Consider adding platform validators (e.g., `shopify theme check`).
+

@@ -4,8 +4,7 @@
 </p>
 
 <p align="center">
-  <b>🧩 BETO FACTORY — CORE EDITION (SALLA ONLY)</b><br>
-  <i>Smart Theme Factory • Canonical Processing • Salla Twig Adaptation</i>
+  <b>🧩 BETO FACTORY — CORE EDITION</b><br>\r\n  <i>Smart Theme Factory • Canonical Processing • Multi‑platform Adapters</i>
 </p>
 
 <p align="center">
@@ -53,28 +52,13 @@
 
 ---
 
-# 🧩 **Beto Factory — Core Edition (Salla Only)**  
-
-> ⚙️ **Beto Factory** is a modular *theme-manufacturing system* that transforms raw HTML into a **canonical JSON model**, adapts it to **Salla’s Twilight (Twig)** engine, validates and packages it into ready-to-upload themes.  
+##
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (v2.2.0)\r\n\r\n```bash\r\n# Install\r\nnpm install\r\n\r\n# Start dashboard (server + Vite dev)\r\nnpm run dashboard\r\n\r\n# Open UI\r\nhttp://localhost:5173\r\n```\r\n\r\nFrom the dashboard:\r\n- Upload a ZIP to Input (or drop a folder under `smart-input/input/<theme>`)\r\n- Select platforms (Salla/Zid/Shopify) and click Build or Rebuild\r\n- Watch live progress; download ZIP/manifest per platform; review QA\r\n\r\n---
 
-```bash
-npm install
-npm run build
-npm run preview
-```
-
-Open → [http://localhost:5173](http://localhost:5173)
-
----
-
-## 📘 Documentation Hub
-
-| Purpose | File |
-|----------|------|
+## 📘 Documentation Hub (selected)\r\n\r\n| Purpose | File |\r\n|----------|------|\r\n| ⚡ Quickstart (Smart Input) | `docs/SMART-INPUT-QUICKSTART.md` |\r\n| 🧭 Developer Kickoff | `docs/DEVELOPER_KICKOFF_GUIDE.md` |\r\n| 🧩 Adapter SDK | `docs/adapters/SDK.md` |\r\n| 📊 Dashboard Guide | `docs/DASHBOARD-GUIDE.md` |\r\n| 🗺️ Roadmap & Progress | `docs/factory-progress.md`, `docs/roadmap.html` |\r\n\r\n----------|------|
 | ⚡ Quickstart (Fast Mode) | [`docs/SMART-INPUT-QUICKSTART.md`](../../Downloads/docs/SMART-INPUT-QUICKSTART.md) |
 | 🧩 Salla Adapter Guide | [`docs/SALLA-ADAPTER-GUIDE.md`](../../Downloads/docs/SALLA-ADAPTER-GUIDE.md) |
 | 🏭 Factory Build Flow | [`docs/FACTORY-BUILD-FLOW.md`](../../Downloads/docs/FACTORY-BUILD-FLOW.md) |
@@ -86,25 +70,4 @@ Open → [http://localhost:5173](http://localhost:5173)
 
 ---
 
-## 🧱 Build Output Structure
-
-Each theme build produces:
-
-```
-build/
- └── salla/
-      ├── templates/*.twig
-      ├── theme.json
-      └── beto-theme.zip
-smart-input/canonical/<theme>/theme.json
-```
-
-**Manifest Fields**
-
-| Field | Description |
-|--------|-------------|
-| `folder` | Theme namespace |
-| `timestamp` | UTC build time |
-| `sectionsDetected` | Number of sections extracted |
-| `componentsExtracted` | Component count |
-| `assetsFound` | Total assets processed |
+## 🧱 Outputs & Layout\r\n\r\nEach theme build produces:\r\n\r\n```\r\nsmart-input/\r\n ├─ input/<theme>/\r\n └─ canonical/<theme>/\r\n     ├─ index.json, theme.json, qa-summary.json\r\n     └─ assets-manifest.json\r\n\r\nbuild/\r\n ├─ salla-themes/<theme>/ (manifest.json, ZIP)\r\n ├─ zid-themes/<theme>/ (manifest.json, ZIP)\r\n └─ shopify-themes/<theme>/ (manifest.json, ZIP)\r\n\r\nqa/\r\n ├─ reports/<theme>-QA.json, <theme>-QA.html\r\n └─ screenshots/<theme>/current-*.png\r\n```\r\n\r\n**Manifest Fields (unified)**\r\n\r\n| Field | Description |\r\n|--------|-------------|\r\n| `folder` | Theme namespace |\r\n| `platform` | `salla` | `zid` | `shopify` |\r\n| `timestamp` | UTC build time |\r\n| `sectionsDetected` | Number of sections extracted |\r\n| `componentsExtracted` | Component count |\r\n| `assetsFound` | Total assets processed |\r\n| `assets` | List of emitted assets |\r\n\r\n## 🔧 CLI Cheatsheet\r\n\r\n- Build one theme (with QA): `node src/cli/factory-build.cjs <folder>`\r\n- Multi-platform: `SMART_PLATFORMS=salla,zid,shopify node src/cli/factory-build.cjs <folder>`\r\n- Stability: `npm run stability -- --themes=<t1>,<t2> --cycles=5 --no-consume`\r\n- QA only: `npm run qa:run -- <folder>`\r\n\r\n## 🧪 Nightly Stability + QA\r\n\r\n- GitHub Actions workflow `.github/workflows/nightly.yml` runs nightly at 03:00 UTC\r\n- Artifacts: logs, QA reports, screenshots\r\n\r\n## 🔐 Auth Token (optional)\r\n\r\nSome endpoints accept `Authorization: Bearer` header (e.g., uploads/builds). In the dashboard, set `localStorage.factoryToken` to your token to include it automatically.\r\n

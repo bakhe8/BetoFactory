@@ -1,6 +1,6 @@
 ﻿# Smart Input — Fast Mode Quickstart
 
-This guide walks you through the minimal, working Smart Input flow to turn a plain HTML folder into a generated Salla theme ZIP.
+This guide walks you through the minimal Smart Input flow to turn a plain HTML folder into canonical JSON and a generated theme ZIP (multi‑platform).
 
 ## Prerequisites
 - Node.js 18+ (22.x tested)
@@ -22,8 +22,7 @@ mkdir -p smart-input/input/my-theme
 ```
 npm run smart-parse my-theme
 ```
-4) Generate the Salla theme
-```
+4) Build the theme (with QA)\r\n```\r\nnode src/cli/factory-build.cjs my-theme\r\n```
 npm run smart-parse my-theme
 ```
 5) Verify outputs
@@ -31,10 +30,7 @@ npm run smart-parse my-theme
 # Canonical JSON
 smart-input/canonical/my-theme/
 
-# Salla namespaced build + ZIP
-build/salla-themes/my-theme/
-build/salla-themes/my-theme.zip
-```
+# # Namespaced build + ZIP (per platform)\r\nbuild/salla-themes/my-theme/ (manifest.json, ZIP)\r\nbuild/zid-themes/my-theme/   (manifest.json, ZIP)\r\nbuild/shopify-themes/my-theme/ (manifest.json, ZIP)\r\n```
 
 ## Commands Cheat Sheet
 - Initialize: `npm run smart-init`
@@ -43,7 +39,7 @@ build/salla-themes/my-theme.zip
 - Watch for new folders: `npm run smart-watch`
 - Minimal CLI: `npm run smart -- parse <folder>` or `npm run smart -- watch`
 - Status for a folder: `node src/cli/smart-cli.cjs status-folder <folder>`
-- All-in-one (batch + cleanup): `npm run smart-all`
+- All-in-one (batch + cleanup): `npm run smart-all`\r\n- Build + QA: `node src/cli/factory-build.cjs <folder>`\r\n- Multi‑platform: `SMART_PLATFORMS=salla,zid,shopify node src/cli/factory-build.cjs <folder>`
 - Select canonical for legacy build: `npm run canonical:select -- <folder>`
 - Bridge export to namespaced build: `npm run bridge:export -- <folder>`
 
@@ -62,3 +58,8 @@ Note: The watcher monitors both `smart-input/input/` and `input/` for new top-le
 - Namespaced build and ZIP appear under `build/salla-themes/`
 
 > Working > Perfect. Add features later; keep the core flow simple and reliable.
+
+## QA Outputs
+- qa/reports/<folder>-QA.json|html (schema, assets, platform checks, visual diffs)
+- qa/screenshots/<folder>/current-*.png (with optional baseline diffs)
+
