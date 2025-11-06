@@ -182,18 +182,35 @@ server.listen(port, () => console.log(`Factory server running on http://localhos
 
 // File content API (text only)
 app.get('/api/file', async (req, res) => {
-  const { platform, theme, file } = req.query;
-  if (!platform || !theme || !file) return res.status(400).json({ ok:false, error:'Missing params' });
-  const safePlatform = String(platform).replace(/[^a-z\-]+/gi,'');
-  const base = path.join('build', safePlatform, String(theme));
-  const requested = path.normalize(path.join(base, String(file)));
-  if (!requested.startsWith(path.resolve(base))) return res.status(400).json({ ok:false, error:'Traversal' });
-  if (!(await fs.pathExists(requested))) return res.status(404).json({ ok:false, error:'Not found' });
-  const textish = /\.(twig|liquid|jinja|json|css|js|md|txt)$/i.test(requested);
-  if (!textish) return res.status(415).json({ ok:false, error:'Unsupported content type' });
-  const data = await fs.readFile(requested, 'utf8');
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.send(data);
+  // Secure, backward-compatible file serving from build directory
+  const { platform, theme } = req.query;
+  let { file } = req.query;
+  if (!file) return res.status(400).send('Missing file parameter');
+
+  const baseAbs = path.resolve(path.join(process.cwd(), 'build'));
+  const allowed = ['salla-themes','shopify-themes','zid-themes'];
+  const firstSeg = String(file).split(/[\\/]/)[0];
+  if (!allowed.includes(firstSeg) && platform && theme) {
+    file = path.join(String(platform), String(theme), String(file));
+  }
+  const requestedAbs = path.resolve(path.join(baseAbs, path.normalize(String(file))));
+  if (!requestedAbs.startsWith(baseAbs)) {
+    console.warn(`File traversal attempt: ${requestedAbs} not in ${baseAbs}`);
+    return res.status(400).send('Invalid file path');
+  }
+  const relativeToBase = path.relative(baseAbs, requestedAbs);
+  const firstSegment = relativeToBase.split(path.sep)[0];
+  if (!allowed.includes(firstSegment)) {
+    console.warn(`Access attempt to non-whitelisted folder: ${firstSegment}`);
+    return res.status(400).send('Access to platform folder not allowed');
+  }
+  if (!(await fs.pathExists(requestedAbs))) {
+    return res.status(404).send('File not found');
+  }
+  const ext = path.extname(requestedAbs).toLowerCase();
+  const contentTypes = { '.html':'text/html','.css':'text/css','.js':'application/javascript','.json':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.svg':'image/svg+xml','.twig':'text/plain','.liquid':'text/plain','.jinja':'text/plain','.md':'text/plain','.txt':'text/plain' };
+  res.setHeader('Content-Type', contentTypes[ext] || 'text/plain');
+  return res.sendFile(requestedAbs);
 });
 
 app.get('/api/qa/:name', async (req, res) => {
