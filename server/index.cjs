@@ -14,6 +14,13 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.json());
+function requireAuth(req, res, next){
+  if (!TOKEN) return next();
+  const h = req.headers['authorization'] || '';
+  const m = /^Bearer\s+(.+)$/i.exec(h);
+  if (m && m[1] === TOKEN) return next();
+  return res.status(401).json({ ok:false, error: 'Unauthorized' });
+}
 
 // Utilities
 async function listThemeFolders() {
@@ -152,5 +159,6 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
 
 
