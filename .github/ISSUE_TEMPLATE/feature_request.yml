@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose an enhancement or new capability
+labels: [enhancement]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the feature and why it’s valuable.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Outline the approach or desired behavior.
+  - type: checkboxes
+    id: areas
+    attributes:
+      label: Areas
+      options:
+        - label: Parser / Canonical
+        - label: Adapters
+        - label: Dashboard
+        - label: QA / Tests
+        - label: CI / Infra
+
