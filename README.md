@@ -177,3 +177,25 @@ For rapid iteration, you can use the Smart Input fast path which watches and pro
 2) Run once: `npm run smart-parse my-theme` or watch: `npm run smart-watch`.
 3) Outputs: canonical JSON in `smart-input/canonical/my-theme/` and namespaced theme at `build/salla-themes/my-theme/` with ZIP `build/salla-themes/my-theme.zip`.
 
+
+## Roadmap & Milestones
+
+We track all work as labeled issues and epics:
+
+- Milestones
+  - M1: Phases 7–8 (Adapters & Consolidation)
+  - M2: Phase 9 (Dashboard Integration)
+  - M3: Phase 10 (QA Automation)
+
+- Labels
+  - phase-[1–10], type:[feature|bug|security|refactor|docs], priority:[P0|P1|P2], status:[todo|done]
+
+- Key Open Issues
+  - #5 Unify watcher logic and deprecate legacy (phase-2, P1)
+  - #6 Modernize Salla adapter to profile/mapping (phase-8, P0)
+  - #7 Complete Shopify OS2.0 structure + validation parsing (phase-8, P0)
+  - #8 QA summary + budgets + trends (phase-10, P1)
+  - #9 Live per-theme build logs with stdout/stderr (phase-9, P1)
+  - #10 Dashboard: File tree, syntax highlighting, and search (phase-9, P2)
+
+See the Issues tab for the full backlog and epics.
