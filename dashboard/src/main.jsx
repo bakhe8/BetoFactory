@@ -23,6 +23,7 @@ function useSocketLogs() {
 
 function UploadBox({ onUploaded }){
   const [platform, setPlatform] = useState('salla')
+  const [toInput, setToInput] = useState(false)
   const [themeName, setThemeName] = useState('')
   const fileRef = useRef()
   const [busy, setBusy] = useState(false)
@@ -34,7 +35,8 @@ function UploadBox({ onUploaded }){
     fd.append('platform', platform)
     fd.append('themeName', themeName)
     setBusy(true)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const url = toInput ? '/api/upload-input' : '/api/upload'
+      const res = await fetch(url, { method: 'POST', body: fd })
     setBusy(false)
     if (!res.ok) return alert('Upload failed')
     onUploaded && onUploaded()
@@ -45,8 +47,9 @@ function UploadBox({ onUploaded }){
         <option value="salla">Salla</option>
         <option value="shopify">Shopify</option>
         <option value="zid">Zid</option>
-      </select>
+      </select> }
       <input type="text" placeholder="Theme name" value={themeName} onChange={e=>setThemeName(e.target.value)} className="border rounded px-2 py-1" />
+      <label className="text-sm text-slate-600 flex items-center gap-2"><input type="checkbox" checked={toInput} onChange={e=>setToInput(e.target.checked)} /> Upload to Input (smart-input/input)</label>
       <input ref={fileRef} type="file" accept=".zip" className="" />
       <button disabled={busy} onClick={upload} className="px-3 py-1 bg-emerald-600 text-white rounded disabled:opacity-50">Upload ZIP</button>
     </div>
@@ -257,6 +260,7 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
 
 
 
