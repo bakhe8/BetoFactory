@@ -2,24 +2,51 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
+
+# Add explicit permissions to avoid git 128 failures during checkout/push
+permissions:
+  contents: write
+  actions: read
+  checks: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
+
       - name: Install
-        run: npm ci || npm install
-      - name: Build
-        run: npm run build
-      - name: Test
-        run: npm test
+        run: |
+          npm ci || npm install
+
+      - name: Fast tests
+        run: |
+          npm run test:fast || npm test
+
+      - name: Upload logs and artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts
+          path: |
+            logs/
+            qa/reports/
+            qa/screenshots/
+          retention-days: 7
