@@ -1,0 +1,10 @@
+{
+  "templateDir": "templates",
+  "sectionDir": "sections",
+  "extension": ".liquid",
+  "map": {
+    "hero": "sections/hero.liquid",
+    "product-grid": "sections/product-grid.liquid"
+  }
+}
+

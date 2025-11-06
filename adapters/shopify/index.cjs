@@ -62,6 +62,16 @@ class ShopifyAdapter {
       sourceCanonicalPath: full
     }, { spaces: 2 });
 
+    // Reconstruct sections/templates from canonical via mapping rules
+    try {
+      const reconstruct = require('../../core/reconstruct.cjs');
+      const canonicalJsonPath = path.join(full, 'theme.json');
+      if (await fs.pathExists(canonicalJsonPath)){
+        const canonicalJson = await fs.readJson(canonicalJsonPath).catch(()=>({}));
+        await reconstruct.reconstruct('shopify', canonicalJson, outDir);
+      }
+    } catch (e) { console.warn('ℹ️  Reconstruction skipped (shopify):', e && e.message ? e.message : e); }
+
     // Zip (optional)
     let zipPath = null;
     if (zipEnabled) {
@@ -80,10 +90,16 @@ class ShopifyAdapter {
       console.log(`📦 Zipped: ${zipPath}`);
     }
 
+    // Optional: run Shopify CLI theme check, if available
+    try {
+      const { spawnSync } = require('child_process');
+      const check = spawnSync('shopify', ['theme', 'check'], { cwd: outDir, shell: process.platform === 'win32', stdio: 'inherit' });
+      if (check.status !== 0) console.warn('⚠️  shopify theme check reported issues');
+    } catch { console.warn('ℹ️  Shopify CLI not available; skipping theme check'); }
+
     console.log(`✅ Generated: ${outDir}`);
     return { themeOutputDir: outDir, zipPath };
   }
 }
 
 module.exports = ShopifyAdapter;
-

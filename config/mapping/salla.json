@@ -1,0 +1,10 @@
+{
+  "templateDir": "templates",
+  "sectionDir": "templates/sections",
+  "extension": ".twig",
+  "map": {
+    "hero": "templates/sections/hero.twig",
+    "product-grid": "templates/sections/product-grid.twig"
+  }
+}
+
