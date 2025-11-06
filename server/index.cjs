@@ -104,7 +104,7 @@ app.get('/api/theme/:name', async (req, res) => {
   res.json({ name, canonical, themeJson, qa, meta, builds });
 });
 
-app.post('/api/build/:name', async (req, res) => {
+app.post('/api/build/:name', requireAuth, async (req, res) => {
   const name = req.params.name;
   const startedAt = Date.now();
   buildStart.set(name, startedAt);
@@ -134,7 +134,7 @@ app.get('/api/logs/:type', async (req, res) => {
 
 // Upload zip -> /input/<folder>
 const upload = multer({ storage: multer.memoryStorage() });
-app.post('/api/upload', upload.single('file'), async (req, res) => {
+app.post('/api/upload', requireAuth, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ ok:false, error: 'No file' });
     const outDir = path.join('input', req.body && req.body.name ? String(req.body.name) : `upload_${Date.now()}`);
@@ -159,6 +159,7 @@ app.use('/dashboard', express.static(path.join(__dirname, '..', 'dashboard', 'di
 
 const port = process.env.FACTORY_SERVER_PORT || 5174;
 server.listen(port, () => console.log(`Factory server running on http://localhost:${port}`));
+
 
 
 
