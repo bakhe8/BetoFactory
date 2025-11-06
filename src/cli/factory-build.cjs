@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 const path = require('path');
 const fs = require('fs-extra');
 
@@ -70,4 +70,5 @@ async function main() {
 if (require.main === module) {
   main();
 }
+
 
