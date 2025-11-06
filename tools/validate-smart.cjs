@@ -1,5 +1,5 @@
 const path = require('path');
-const validator = require('./schema-validator.js');
+const validator = require('./schema-validator.cjs');
 
 async function main(){
   const folder = process.argv[2];
@@ -18,4 +18,3 @@ async function main(){
 }
 
 if (require.main === module){ main(); }
-

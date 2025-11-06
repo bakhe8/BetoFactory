@@ -1,24 +1,44 @@
 {
-  "$schema": "https://beto.factory/schema/canonical.json",
   "layout": {
     "header": "default",
     "footer": "default"
   },
-  "components": {
-    "hero": {
-      "type": "banner",
-      "props": {
-        "title": "Hero Banner",
-        "image": "images/hero.jpg"
-      }
-    },
-    "product-grid": {
-      "type": "grid"
-    }
-  },
+  "components": {},
   "assets": {
-    "images": [
-      "images/hero.jpg"
-    ]
+    "images": [],
+    "styles": [],
+    "scripts": []
+  },
+  "sections": [],
+  "metadata": {
+    "sourceFile": "index.html",
+    "processedAt": "2025-11-06T03:30:13.225Z",
+    "parserVersion": "2.1.0-smart"
+  },
+  "smartFeatures": {
+    "componentCount": 0
+  },
+  "meta": {
+    "title": "T",
+    "tags": {},
+    "schema": [],
+    "normalized": {
+      "organizations": [],
+      "products": []
+    },
+    "styles": {
+      "colors": [
+        "#fff",
+        "rgb(12,34,56)"
+      ],
+      "fonts": [
+        "Inter",
+        "Arial",
+        "sans-serif",
+        "MyFont",
+        "font-face"
+      ],
+      "cssVars": {}
+    }
   }
 }

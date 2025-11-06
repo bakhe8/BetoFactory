@@ -17,7 +17,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install
-        run: npm ci
+        run: npm ci || npm install
       - name: Build
         run: npm run build
       - name: Upload ZIP artifact
@@ -25,4 +25,3 @@ jobs:
         with:
           name: beto-theme-zip
           path: build/beto-theme.zip
-

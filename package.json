@@ -1,4 +1,4 @@
-﻿{
+{
     "name":  "beto-factory",
     "version":  "2.1.0",
     "description":  "Beto Factory — Core Edition (Salla-only)",
@@ -30,20 +30,33 @@
                     "format":  "prettier -w .",
                     "preview":  "node preview/server.js",
                     "validate:salla":  "node core/validate-salla.js",
-                    "parse":  "node tools/parser.cjs",
+                    "parse":  "node tools/smart-parser.cjs",
                     "watch:input":  "node tools/folderWatcher.cjs",
-                    "validate": "node tools/schema-validator.cjs",
+                    "validate":  "node tools/schema-validator.cjs",
                     "watch":  "npm run watch:input",
                     "dev":  "npm run watch:input",
-                    "process-all": "npm run parse && npm run validate" ,
-    "smart-validate": "node tools/validate-smart.cjs",
-                    "smart-parse": "node tools/smart-parser.cjs",
-                    "smart-watch": "node tools/simple-watcher.cjs",
+                    "process-all":  "npm run parse \u0026\u0026 npm run validate",
+                    "smart-validate":  "node tools/validate-smart.cjs",
+                    "smart-parse":  "node tools/smart-parser.cjs",
+                    "smart-watch":  "node tools/smart-watcher.cjs",
                     "smart-init":  "node tools/smart-init.js",
-                    "smart":  "node src/cli/minimal-cli.js"
+                    "smart":  "node src/cli/minimal-cli.cjs",
+                    "smart-batch":  "node src/cli/smart-cli.cjs batch-parse",
+                    "smart-clean":  "node tools/cleanup.cjs",
+                    "smart-all":  "npm run smart-batch \u0026\u0026 npm run smart-clean",
+                    "test:fast":  "jest -c jest.config.cjs",
+                    "bridge:export":  "node tools/adapter-bridge.cjs",
+                    "canonical:select":  "node tools/select-canonical.cjs",
+                    "smart-watch:simple":  "node tools/simple-watcher.cjs",
+                    "scan-existing":  "node src/cli/smart-cli.cjs scan-existing",
+                    "factory:build":  "node src/cli/factory-build.cjs",
+                    "salla:serve:ns":  "node tools/salla-ns.cjs watch",
+                    "salla:validate:ns":  "node tools/salla-ns.cjs validate",
+                    "salla:publish:ns":  "node tools/salla-ns.cjs publish",
+                    "status":  "node scripts/status/status-folder.cjs \u0026\u0026 npx doctoc docs/factory-progress.md"
                 },
     "bin":  {
-                "beto-smart":  "./src/cli/smart-cli.js"
+                "beto-smart":  "src/cli/smart-cli.js"
             },
     "dependencies":  {
                          "ajv":  "^8.17.1",
@@ -53,15 +66,32 @@
                          "cheerio":  "^1.1.2",
                          "commander":  "^11.1.0",
                          "fs-extra":  "^11.2.0",
-                         "glob":  "^10.4.5"
+                         "glob":  "^10.4.5",
+                         "sharp":  "^0.33.4"
                      },
     "devDependencies":  {
                             "@salla.sa/cli":  "^3.2.25",
                             "chokidar":  "^4.0.3",
                             "eslint":  "^9.39.1",
-                            "prettier":  "^3.6.2"
-                        }
+                            "prettier":  "^3.6.2",
+                            "jest":  "^29.7.0"
+                        },
+    "main":  "cli.js",
+    "directories":  {
+                        "doc":  "docs",
+                        "test":  "tests"
+                    },
+    "repository":  {
+                       "type":  "git",
+                       "url":  "git+https://github.com/bakhe8/BetoFactory.git"
+                   },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "bugs":  {
+                 "url":  "https://github.com/bakhe8/BetoFactory/issues"
+             },
+    "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
-
-
-

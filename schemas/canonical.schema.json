@@ -1,4 +1,4 @@
-﻿{
+{
     "$schema":  "https://json-schema.org/draft/2020-12/schema",
     "$id":  "https://beto.factory/schema/canonical.json",
     "title":  "Beto Factory Canonical Model",
@@ -30,6 +30,15 @@
                                                        },
                                         "additionalProperties":  true
                                     },
+                       "meta":  {
+                                       "type":  "object",
+                                       "properties":  {
+                                                          "title":  { "type":  "string" },
+                                                          "tags":   { "type":  "object", "additionalProperties": { "type": "string" } },
+                                                          "schema": { "type":  "array", "items": { "type": "object" } }
+                                                      },
+                                       "additionalProperties":  true
+                                   },
                        "layout":  {
                                       "type":  "object",
                                       "required":  [
@@ -149,26 +158,32 @@
                                                         }
                                                     ]
                                       },
-                       "assets":  {
+                      "assets":  {
                                       "type":  "object",
                                       "properties":  {
                                                          "images":  {
                                                                         "type":  "array",
-                                                                        "items":  {
-                                                                                      "type":  "string"
-                                                                                  }
+                                                                        "items":  { "type":  "string" }
+                                                                    },
+                                                         "fonts":  {
+                                                                        "type":  "array",
+                                                                        "items":  { "type":  "string" }
+                                                                    },
+                                                         "css":    {
+                                                                        "type":  "array",
+                                                                        "items":  { "type":  "string" }
+                                                                    },
+                                                         "js":     {
+                                                                        "type":  "array",
+                                                                        "items":  { "type":  "string" }
                                                                     },
                                                          "styles":  {
-                                                                        "items":  {
-                                                                                      "type":  "string"
-                                                                                  },
-                                                                        "type":  "array"
+                                                                        "type":  "array",
+                                                                        "items":  { "type":  "string" }
                                                                     },
                                                          "scripts":  {
-                                                                         "items":  {
-                                                                                       "type":  "string"
-                                                                                   },
-                                                                         "type":  "array"
+                                                                         "type":  "array",
+                                                                         "items":  { "type":  "string" }
                                                                      }
                                                      },
                                       "additionalProperties":  false
@@ -176,3 +191,4 @@
                    },
     "additionalProperties":  true
 }
+
