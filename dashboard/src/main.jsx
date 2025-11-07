@@ -35,7 +35,7 @@ function UploadBox({ onUploaded }){
     fd.append('themeName', themeName)
     setBusy(true)
     const url = toInput ? '/api/upload-input' : '/api/upload'
-      const res = await fetch(url, { method: 'POST', body: fd })
+      const res = await fetch(url, { method: 'POST', body: fd, headers: authHeaders() })
     setBusy(false)
     if (!res.ok) return alert('Upload failed')
     onUploaded && onUploaded()
@@ -451,6 +451,11 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
+
+
+
+
 
 
 
