@@ -36,6 +36,11 @@ class ShopifyAdapter {
 
     const indexLiquid = `{% section 'main-index' %}\n`;
     await fs.writeFile(path.join(outDir, 'templates', 'index.liquid'), indexLiquid, 'utf8');
+    // OS 2.0 JSON template referencing main section (best-effort)
+    try {
+      const indexJson = { sections: { 'main': { type: 'main-index', settings: {} } }, order: ['main'] };
+      await fs.writeJson(path.join(outDir, 'templates', 'index.json'), indexJson, { spaces: 2 });
+    } catch {}
 
     const mainSection = `<!-- Auto-generated scaffold -->\n<section class="main-index">\n  <h1>{{ shop.name }}</h1>\n</section>\n`;
     await fs.writeFile(path.join(outDir, 'sections', 'main-index.liquid'), mainSection, 'utf8');
@@ -103,3 +108,4 @@ class ShopifyAdapter {
 }
 
 module.exports = ShopifyAdapter;
+
