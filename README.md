@@ -40,6 +40,7 @@ http://localhost:5173
 
 In the dashboard:
 - Upload a ZIP to Input (or drop a folder under `smart-input/input/<theme>`)
+- Open Config and set your Factory Token if the server requires auth
 - Select platforms (Salla/Zid/Shopify) and click Build/Rebuild
 - Watch live progress; download ZIP/manifest per platform; review QA
 
@@ -105,7 +106,10 @@ qa/
 
 ## 🔐 Auth Token (optional)
 
-Some endpoints accept `Authorization: Bearer` header (e.g., uploads/builds). In the dashboard, set `localStorage.factoryToken` to your token to include it automatically.
+Some endpoints accept `Authorization: Bearer` header (e.g., uploads/builds).
+
+- Recommended: Use the Dashboard Config panel (header → Config) to save your token. The UI stores it as `localStorage.factoryToken` and sends it automatically.
+- Alternative: Manually set `localStorage.factoryToken = '<your-secret>'` in the browser console.
 
 ## 🆕 What’s New in v2.2.0
 
