@@ -15,8 +15,8 @@
   </a>
 
   <!-- 🔹 QA -->
-  <a href="https://github.com/bakhe8/BetoFactory/actions/workflows/qa.yml">
-    <img src="https://img.shields.io/badge/QA_Pipeline-Passing-brightgreen?logo=github" alt="QA Status">
+  <a href="https://github.com/bakhe8/BetoFactory/actions/workflows/nightly.yml">
+    <img src="https://img.shields.io/badge/Nightly_QA-Passing-brightgreen?logo=github" alt="QA Status">
   </a>
 
   <!-- 🔹 TESTS -->
@@ -79,4 +79,5 @@
 - Automatic QA post‑build: JSON + HTML reports; visual diffs and budgets; nightly workflow with artifacts.
 - Stability tooling: stability-runner, ZIP extractor, watcher utilities.
 - Docs refreshed and CHANGELOG added; release tag 2.2.0 published.
+
 
