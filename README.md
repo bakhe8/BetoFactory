@@ -25,7 +25,7 @@
 
 ⚙️ Beto Factory is a modular theme factory that transforms raw HTML into a canonical JSON model, adapts it to target platforms (Salla, Zid, Shopify), validates and packages ready‑to‑upload themes.
 
-## 🚀 Quick Start (v2.2.0)
+## 🚀 Quick Start (v2.2.1)
 
 ```bash
 ## Install
