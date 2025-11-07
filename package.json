@@ -1,7 +1,7 @@
 {
     "name":  "beto-factory",
-    "version": "2.2.1",
-    "description": "Beto Factory — Core Edition (Multi-platform Adapters, Dashboard, QA)",
+    "version":  "2.2.1",
+    "description":  "Beto Factory — Core Edition (Multi-platform Adapters, Dashboard, QA)",
     "type":  "module",
     "private":  true,
     "scripts":  {
@@ -10,7 +10,7 @@
                     "watch:build":  "node core/watch-build.cjs",
                     "parse":  "node tools/smart-parser.cjs",
                     "test:export":  "node tests/test-export.js",
-                    "dev": "npm run smart-watch:simple",
+                    "dev":  "npm run smart-watch:simple",
                     "test:adapter":  "node tests/test-adapter.js",
                     "smart":  "node src/cli/minimal-cli.cjs",
                     "dashboard":  "concurrently -k \"npm:server\" \"npm:dashboard:dev\"",
@@ -21,7 +21,7 @@
                     "preview":  "node preview/server.js",
                     "qa:run":  "node tools/qa/qa-runner.cjs",
                     "salla:lint":  "node core/salla-cli.js theme lint",
-                    "watch": "npm run smart-watch:simple",
+                    "watch":  "npm run smart-watch:simple",
                     "test:twilight":  "node tests/test-twilight.js",
                     "salla:push":  "node core/salla-cli.js theme push",
                     "salla:dev":  "node core/salla-cli.js theme watch",
@@ -34,7 +34,7 @@
                     "salla:publish:ns":  "node tools/salla-ns.cjs publish",
                     "process-all":  "npm run parse \u0026\u0026 npm run validate",
                     "smart-batch":  "node src/cli/smart-cli.cjs batch-parse",
-                    "stability:daily": "node tools/stability-runner.cjs --cycles=5 --no-consume",
+                    "stability:daily":  "node tools/stability-runner.cjs --cycles=5 --no-consume",
                     "adapt:salla":  "node core/adapter-salla.js",
                     "assets":  "node core/assets.js",
                     "clean":  "node core/cleaner.js",
@@ -47,14 +47,14 @@
                     "adapt:platform":  "npm run adapt:salla",
                     "canonical:select":  "node tools/select-canonical.cjs",
                     "test:salla-cli":  "npm run salla:validate \u0026\u0026 npm run salla:lint",
-                    "test:fast": "jest -c jest.config.cjs --passWithNoTests",
+                    "test:fast":  "jest -c jest.config.cjs --passWithNoTests",
                     "salla:validate":  "node core/salla-cli.js theme validate",
                     "validate:salla":  "node core/validate-salla.js",
                     "build":  "npm run canonicalize \u0026\u0026 npm run adapt:salla \u0026\u0026 npm run assets \u0026\u0026 npm run locales \u0026\u0026 npm run salla:validate \u0026\u0026 npm run salla:lint \u0026\u0026 npm run clean \u0026\u0026 npm run export",
                     "stability":  "node tools/stability-runner.cjs",
-                    "input:extract": "node tools/extract-input-zips.cjs",
-                    "logs:clean": "node tools/cleanup-logs.cjs",
-                    "stability:cycle": "npm run input:extract && node tools/stability-runner.cjs --cycles=5 --no-consume",
+                    "input:extract":  "node tools/extract-input-zips.cjs",
+                    "logs:clean":  "node tools/cleanup-logs.cjs",
+                    "stability:cycle":  "npm run input:extract \u0026\u0026 node tools/stability-runner.cjs --cycles=5 --no-consume",
                     "test":  "npm run test:canonical \u0026\u0026 npm run test:adapter \u0026\u0026 npm run test:twilight \u0026\u0026 node tests/test-section-schema.js \u0026\u0026 npm run test:export",
                     "smart-clean":  "node tools/cleanup.cjs",
                     "salla:serve:ns":  "node tools/salla-ns.cjs watch",
@@ -63,7 +63,8 @@
                     "server":  "node server/index.cjs",
                     "validate":  "node tools/schema-validator.cjs",
                     "salla:publish":  "node core/salla-cli.js theme publish",
-                    "salla:validate:ns":  "node tools/salla-ns.cjs validate"
+                    "salla:validate:ns":  "node tools/salla-ns.cjs validate",
+                    "pretest":  "node tools/check-bom.cjs"
                 },
     "bin":  {
                 "beto-smart":  "src/cli/smart-cli.js"
@@ -122,8 +123,3 @@
              },
     "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
-
-
-
-
-

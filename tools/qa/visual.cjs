@@ -1,9 +1,20 @@
 const path = require('path');
 const fs = require('fs-extra');
 
-async function capture(theme){
+let __browser = null;
+async function getBrowser(){
   let puppeteer;
-  try { puppeteer = require('puppeteer'); } catch { return { ok:false, skipped: true, reason: 'puppeteer not installed' }; }
+  try { puppeteer = require('puppeteer'); } catch { return null }
+  if (!__browser) {
+    __browser = await puppeteer.launch({ headless: 'new' });
+    try { process.on('exit', async ()=>{ try { await __browser.close(); } catch {} }); } catch {}
+  }
+  return __browser;
+}
+
+async function capture(theme){
+  const browser = await getBrowser();
+  if (!browser) return { ok:false, skipped: true, reason: 'puppeteer not installed' };
   const outDir = path.join('qa','screenshots', theme);
   await fs.ensureDir(outDir);
   const target = process.env.QA_TARGET_URL;
@@ -17,7 +28,6 @@ async function capture(theme){
     { name: 'desktop', width: 1440, height: 900 }
   ];
   const results = {};
-  const browser = await puppeteer.launch({ headless: 'new' });
   for (const bp of breakpoints){
     const page = await browser.newPage();
     await page.setViewport({ width: bp.width, height: bp.height, deviceScaleFactor: 1 });
@@ -37,7 +47,7 @@ async function capture(theme){
     const mismatchPct = ((mismatch / (width*height)) * 100).toFixed(2);
     results[bp.name] = { ok: true, current: currentPath, diff: diffPath, mismatch: Number(mismatchPct) };
   }
-  await browser.close();
+  // keep browser open for reuse
   const worst = Object.values(results).reduce((m, r) => Math.max(m, Number(r.mismatch||0)), 0);
   return { ok: worst <= 5, results };
 }

@@ -31,6 +31,34 @@ class SmartInputParser {
       await fs.copy(inputPath, processingPath, { overwrite: true });
     }
     try {
+      // Compute quick signature of input directory to short-circuit unchanged work
+      const computeSig = async (dir) => {
+        const crypto = require('crypto');
+        const h = crypto.createHash('sha1');
+        async function walk(d){
+          const items = await fs.readdir(d);
+          for (const it of items){
+            const p = path.join(d,it);
+            const st = await fs.stat(p);
+            if (st.isDirectory()) await walk(p); else { h.update(path.relative(dir,p)); h.update(String(st.size)); h.update(String(st.mtimeMs)); }
+          }
+        }
+        await walk(dir);
+        return h.digest('hex');
+      };
+      const sig = await computeSig(processingPath);
+      const existingMetaPath = path.join('smart-input','canonical', folderName, 'meta.json');
+      let existingSig = null;
+      try { const m = await fs.readJson(existingMetaPath); existingSig = m && (m.lastInputSignature || m.inputSignature); } catch {}
+      const forceRebuild = String(process.env.SMART_FORCE_REBUILD||'false').toLowerCase()==='true';
+      let res;
+      if (!forceRebuild && existingSig && existingSig === sig) {
+        // Skip heavy parse; reuse existing canonical files
+        this.logger.info(`Input unchanged (signature match); reusing canonical for ${folderName}`);
+        res = { folder: folderName, processedFiles: 0, results: [] };
+      } else {
+        res = await this.parseFolder(processingPath, outputPath, folderName);
+      }
       const res = await this.parseFolder(processingPath, outputPath, folderName);
       // Resolve safe output names and write consolidated canonical under smart-input/canonical/<folder>/theme.json
       const conflictResolver = require('./conflict-resolver.cjs');
@@ -47,7 +75,8 @@ class SmartInputParser {
           title: consolidated.meta && consolidated.meta.title || null,
           tags: consolidated.meta && consolidated.meta.tags || {},
           schemaCount: consolidated.meta && Array.isArray(consolidated.meta.schema) ? consolidated.meta.schema.length : 0,
-          generatedAt: new Date().toISOString()
+          generatedAt: new Date().toISOString(),
+          lastInputSignature: sig
         };
         await fs.writeJson(path.join(desiredCanonicalDir, 'meta.json'), metaSummary, { spaces: 2 });
       } catch (e) {

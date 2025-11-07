@@ -5,6 +5,7 @@ const fs = require('fs-extra');
 async function processOne(folder) {
   const { SmartInputParser } = require('../../tools/smart-parser.cjs');
   const validator = require('../../tools/schema-validator.cjs');
+  const metrics = require('../../tools/metrics.cjs');
 
   const parser = new SmartInputParser();
 
@@ -17,20 +18,39 @@ async function processOne(folder) {
     throw new Error(`Input folder not found in either smart-input/input or input: ${folder}`);
   }
 
+  const t0 = Date.now();
   await parser.processDesignFolder(folder);
+  const tParse = Date.now();
 
   const valid = await validator.validateSmartInputFolder(folder);
   if (!valid) throw new Error(`Schema validation failed for ${folder}`);
 
   // Phase 10: run QA automation (best-effort, does not break build)
+  let qaOk = true; let qaTime = 0; let failStage = null;
   try {
     const qa = require('../../tools/qa/qa-runner.cjs');
-    await qa.run(folder);
+    const q0 = Date.now();
+    const out = await qa.run(folder);
+    qaOk = !!(out && out.ok);
+    qaTime = Date.now() - q0;
     console.log(`QA: completed for ${folder}`);
   } catch (e) {
     console.warn('QA runner error:', e && e.message ? e.message : e);
+    qaOk = false; failStage = 'qa';
   }
-
+  const tEnd = Date.now();
+  const buildTime = tEnd - t0;
+  try {
+    await metrics.record({
+      name: folder,
+      build_time: buildTime,
+      qa_time: qaTime,
+      success: qaOk,
+      fail_stage: failStage,
+      platform: process.env.SMART_PLATFORMS || 'salla',
+      timestamp: new Date().toISOString()
+    });
+  } catch {}
   return true;
 }
 

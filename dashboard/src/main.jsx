@@ -381,6 +381,7 @@ function QACanonicalSummary({ qa, onRebuild, rebuilding, onPromote }){
 function App(){
   const [selected, setSelected] = useState(null)
   const [details, setDetails] = useState(null)
+  const [metrics, setMetrics] = useState(null)
   const [logs, setLogs] = useState([])
   const [rebuilding, setRebuilding] = useState(false)
   const [platforms, setPlatforms] = useState(['salla'])
@@ -412,6 +413,7 @@ function App(){
     if (!selected) { setDetails(null); return }
     fetch(`/api/theme/${encodeURIComponent(selected)}`).then(r=>r.json()).then(setDetails)
   }, [selected])
+  useEffect(() => { fetch('/api/metrics').then(r=>r.json()).then(setMetrics) }, [])
   useEffect(() => { try { setTokenInput(localStorage.getItem('factoryToken') || '') } catch {} }, [])
   const downloadCanonical = () => {
     try {
@@ -499,11 +501,32 @@ function App(){
             )}
           </div>
         )}
-        <div className="bg-white border rounded p-3 md:col-span-2">
-          <h3 className="font-semibold mb-2">QA Report</h3>
-          {!details?.name ? null : (
-            <QAView name={selected} />
+        <div className="bg-white border rounded p-3 md:col-span-2 mt-4">
+          <h3 className="font-semibold mb-2">Metrics</h3>
+          {!metrics ? <div className="text-slate-500 text-sm">No metrics yet</div> : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="text-sm">
+                <div>Total builds: <span className="font-mono">{metrics.builds?.total ?? 0}</span></div>
+                <div>Success: <span className="font-mono">{metrics.builds?.success ?? 0}</span></div>
+                <div>Failed: <span className="font-mono">{metrics.builds?.failed ?? 0}</span></div>
+              </div>
+              <div className="md:col-span-2 h-24">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={(metrics.last||[]).map((x,i)=>({ idx: i+1, ms: x.durationMs || x.build_time }))}>
+                    <XAxis dataKey="idx" hide />
+                    <YAxis hide domain={[ 'auto','auto' ]} />
+                    <Line type="monotone" dataKey="ms" stroke="#0ea5e9" dot={false} strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           )}
+        </div>
+        <div className="bg-white border rounded p-3 md:col-span-2">
+  <h3 className="font-semibold mb-2">QA Report</h3>
+  {!details?.name ? null : (
+    <QAView name={selected} />
+  )}
         </div>
         <QASummary name={selected} />
         <LogConsole />
