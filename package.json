@@ -10,7 +10,7 @@
                     "watch:build":  "node core/watch-build.cjs",
                     "parse":  "node tools/smart-parser.cjs",
                     "test:export":  "node tests/test-export.js",
-                    "dev":  "npm run watch:input",
+                    "dev": "npm run smart-watch:simple",
                     "test:adapter":  "node tests/test-adapter.js",
                     "smart":  "node src/cli/minimal-cli.cjs",
                     "dashboard":  "concurrently -k \"npm:server\" \"npm:dashboard:dev\"",
@@ -21,7 +21,7 @@
                     "preview":  "node preview/server.js",
                     "qa:run":  "node tools/qa/qa-runner.cjs",
                     "salla:lint":  "node core/salla-cli.js theme lint",
-                    "watch":  "npm run watch:input",
+                    "watch": "npm run smart-watch:simple",
                     "test:twilight":  "node tests/test-twilight.js",
                     "salla:push":  "node core/salla-cli.js theme push",
                     "salla:dev":  "node core/salla-cli.js theme watch",
@@ -119,6 +119,7 @@
              },
     "homepage":  "https://github.com/bakhe8/BetoFactory#readme"
 }
+
 
 
 

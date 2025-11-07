@@ -227,6 +227,33 @@ app.get('/api/qa/:name', async (req, res) => {
   const name = req.params.name;
   const file = path.join('qa','reports', `${name}-QA.json`);
   if (!(await fs.pathExists(file))) return res.status(404).json({ ok:false, error:'No QA report' });
+// List recent QA reports for a theme (history)
+app.get('/api/qa/history/:name', async (req, res) => {
+  try {
+    const name = req.params.name;
+    const dir = path.join('qa','reports');
+    if (!(await fs.pathExists(dir))) return res.json({ items: [] });
+    const files = await fs.readdir(dir);
+    const matches = files.filter(f => f.startsWith(name + '-') && f.endsWith('-QA.json'));
+    const withTimes = await Promise.all(matches.map(async f => {
+      const p = path.join(dir, f);
+      const st = await fs.stat(p).catch(()=>null);
+      return { file: f, mtimeMs: st ? st.mtimeMs : 0 };
+    }));
+    withTimes.sort((a,b) => b.mtimeMs - a.mtimeMs);
+    const limit = Number(req.query.limit || 10);
+    const sliced = withTimes.slice(0, limit);
+    const items = [];
+    for (const m of sliced){
+      const data = await fs.readJson(path.join(dir, m.file)).catch(()=>null);
+      if (!data) continue;
+      items.push({ file: m.file, status: data.status, budgets: data.stages && data.stages.budgets || null, lintJs: data.stages && data.stages.lintJs || null, startedAt: data.startedAt || null, finishedAt: data.finishedAt || null });
+    }
+    return res.json({ items });
+  } catch (e) {
+    return res.status(500).json({ ok:false, error: e && e.message ? e.message : String(e) });
+  }
+});
   const json = await fs.readJson(file).catch(()=>null);
   res.json(json || { ok:false });
 });
@@ -294,3 +321,4 @@ app.post('/api/upload-input', uploadLimiter, upload.single('theme'), async (req,
     return res.status(400).json({ error: `Upload failed: ${e && e.message ? e.message : String(e)}` });
   }
 });
+

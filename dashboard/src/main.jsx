@@ -250,6 +250,8 @@ function QASummary({ name }){
   const badge = status === 'passed' ? 'bg-emerald-600' : status === 'failed' ? 'bg-rose-600' : 'bg-slate-500'
   const visual = qa?.stages?.visual
   const results = visual?.results || {}
+  const lintJs = qa?.stages?.lintJs || {}
+  const budgets = qa?.stages?.budgets || {}
   const diffs = [
     { label: 'mobile', url: `/qa/screenshots/${encodeURIComponent(name)}/diff-mobile.png` },
     { label: 'tablet', url: `/qa/screenshots/${encodeURIComponent(name)}/diff-tablet.png` },
@@ -263,6 +265,23 @@ function QASummary({ name }){
           <span className={`inline-block text-white text-xs px-2 py-1 rounded ${badge}`}>QA {status}</span>
         </div>
         <a href={htmlUrl} target="_blank" className="underline text-indigo-600">Open HTML report</a>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div className="border rounded p-2 text-sm">
+          <div className="font-semibold mb-1">JS Lint</div>
+          <div>Errors: <span className="font-mono">{lintJs.errorCount ?? '—'}</span></div>
+          <div>Warnings: <span className="font-mono">{lintJs.warningCount ?? '—'}</span></div>
+        </div>
+        <div className="border rounded p-2 text-sm">
+          <div className="font-semibold mb-1">Budgets</div>
+          <div>Total: <span className="font-mono">{budgets.total ?? '—'}</span></div>
+          <div>Max: <span className="font-mono">{budgets.max ?? '—'}</span></div>
+          <div>Status: <span className="font-mono">{budgets.ok===false ? 'Exceeded' : 'OK'}</span></div>
+        </div>
+        <div className="border rounded p-2 text-sm">
+          <div className="font-semibold mb-1">Summary</div>
+          <div className="text-xs text-slate-600">See full report for details.</div>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <pre className="border rounded p-2 h-64 overflow-auto text-xs whitespace-pre-wrap">{JSON.stringify(qa.stages && (qa.stages.summary || qa.stages), null, 2)}</pre>
@@ -451,6 +470,8 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
+
 
 
 
