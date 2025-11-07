@@ -32,12 +32,34 @@ async function checkAssets(theme){
 
 async function platformValidate(theme){
   const out = {};
+  const roots = {
+    salla: path.join('build','salla-themes', theme),
+    shopify: path.join('build','shopify-themes', theme),
+    zid: path.join('build','zid-themes', theme)
+  };
   // Salla CLI
   try { const r = spawnSync('node', ['core/salla-cli.js','theme','validate'], { shell: process.platform==='win32', stdio:'pipe' }); out.salla = { code: r.status, ok: r.status === 0 }; } catch { out.salla = { ok:false, error:'salla cli not available' }; }
   // Shopify CLI
   try { const r = spawnSync('shopify', ['theme','check'], { shell: process.platform==='win32', stdio:'pipe' }); out.shopify = { code: r.status, ok: r.status === 0 }; } catch { out.shopify = { ok:false, error:'shopify cli not available' }; }
   // Zid lint placeholder
   out.zid = { ok:true, note:'lint not available; skipped' };
+  // Required files existence check (best-effort)
+  const required = {
+    salla: ['theme.json', 'assets', 'locales'],
+    shopify: ['config/settings_schema.json', 'templates/index.liquid'],
+    zid: ['manifest.json', 'assets']
+  };
+  for (const pf of Object.keys(required)){
+    const root = roots[pf];
+    const missing = [];
+    for (const rel of required[pf]){
+      const p = path.join(root, rel);
+      // Check either file or folder exists
+      const exists = await fileExists(p);
+      if (!exists) missing.push(rel);
+    }
+    out[pf] = { ...(out[pf]||{}), required: { missing, ok: missing.length===0 } };
+  }
   return out;
 }
 

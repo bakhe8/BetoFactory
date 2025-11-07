@@ -1,11 +1,14 @@
-name: Fast Tests
+﻿name: Fast Tests
 
 on:
   pull_request:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+  issues: write
+  pull-requests: write
+  projects: write
   actions: read
   checks: write
 
@@ -55,4 +58,5 @@ jobs:
             qa/reports/
             qa/screenshots/
           retention-days: 5
+
 

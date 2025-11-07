@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -31,6 +31,9 @@ on:
 # Add explicit permissions to avoid git 128 failures during checkout/push
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+  projects: write
   actions: read
   checks: write
 
@@ -80,3 +83,4 @@ jobs:
             qa/reports/
             qa/screenshots/
           retention-days: 7
+

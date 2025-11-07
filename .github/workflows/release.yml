@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: write
+  issues: write
+  pull-requests: write
+  projects: write
+  actions: read
 
 jobs:
   build-zip:
@@ -23,9 +27,13 @@ jobs:
         run: npm ci || npm install
       - name: Build
         run: npm run build
+      - name: Generate stability summary (1 cycle)
+        run: node tools/stability-runner.cjs --cycles=1 --no-consume || true
       - name: Create GitHub Release and upload ZIP
         uses: softprops/action-gh-release@v1
         with:
           body_path: CHANGELOG.md
           files: |
             build/beto-theme.zip
+            logs/stability/*.json
+

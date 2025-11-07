@@ -1,4 +1,4 @@
-﻿{
+{
     "name":  "beto-factory",
     "version": "2.2.0",
     "description": "Beto Factory — Core Edition (Multi-platform Adapters, Dashboard, QA)",
@@ -52,6 +52,9 @@
                     "validate:salla":  "node core/validate-salla.js",
                     "build":  "npm run canonicalize \u0026\u0026 npm run adapt:salla \u0026\u0026 npm run assets \u0026\u0026 npm run locales \u0026\u0026 npm run salla:validate \u0026\u0026 npm run salla:lint \u0026\u0026 npm run clean \u0026\u0026 npm run export",
                     "stability":  "node tools/stability-runner.cjs",
+                    "input:extract": "node tools/extract-input-zips.cjs",
+                    "logs:clean": "node tools/cleanup-logs.cjs",
+                    "stability:cycle": "npm run input:extract && node tools/stability-runner.cjs --cycles=5 --no-consume",
                     "test":  "npm run test:canonical \u0026\u0026 npm run test:adapter \u0026\u0026 npm run test:twilight \u0026\u0026 node tests/test-section-schema.js \u0026\u0026 npm run test:export",
                     "smart-clean":  "node tools/cleanup.cjs",
                     "salla:serve:ns":  "node tools/salla-ns.cjs watch",

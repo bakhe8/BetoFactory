@@ -20,6 +20,13 @@ function useSocketLogs() {
   return { parser, errors }
 }
 
+function authHeaders(){
+  try {
+    const t = localStorage.getItem('factoryToken')
+    return t ? { 'Authorization': 'Bearer ' + t } : {}
+  } catch { return {} }
+}
+
 function UploadBox({ onUploaded }){
   const [platform, setPlatform] = useState('salla')
   const [toInput, setToInput] = useState(false)
@@ -244,7 +251,16 @@ function QAView({ name }){
 }
 function QASummary({ name }){
   const [qa, setQa] = useState(null)
+  const [trend, setTrend] = useState([])
   useEffect(() => { fetch(`/api/qa/${encodeURIComponent(name)}`).then(r=>r.ok?r.json():null).then(setQa) }, [name])
+  useEffect(() => {
+    if (!name) { setTrend([]); return }
+    fetch(`/api/qa/history/${encodeURIComponent(name)}?limit=10`).then(r=>r.ok?r.json():null).then(data => {
+      const items = Array.isArray(data?.history) ? data.history : []
+      const mapped = items.map((h, i) => ({ idx: i+1, total: (h?.stages?.budgets?.total) ?? null })).filter(x => typeof x.total === 'number')
+      setTrend(mapped)
+    }).catch(()=> setTrend([]))
+  }, [name])
   if (!qa) return <div className="text-slate-500">No QA data</div>
   const status = qa.status
   const badge = status === 'passed' ? 'bg-emerald-600' : status === 'failed' ? 'bg-rose-600' : 'bg-slate-500'
@@ -268,9 +284,9 @@ function QASummary({ name }){
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div className="border rounded p-2 text-sm">
-          <div className="font-semibold mb-1">JS Lint</div>
-          <div>CSS Errors: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.errorCount) ?? \"—\"}</span></div>
-          <div>CSS Warnings: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.warningCount) ?? \"—\"}</span></div>
+          <div className="font-semibold mb-1">Lint</div>
+          <div>CSS Errors: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.errorCount) ?? '—'}</span></div>
+          <div>CSS Warnings: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.warningCount) ?? '—'}</span></div>
           <div>Errors: <span className="font-mono">{lintJs.errorCount ?? '—'}</span></div>
           <div>Warnings: <span className="font-mono">{lintJs.warningCount ?? '—'}</span></div>
         </div>
@@ -278,7 +294,20 @@ function QASummary({ name }){
           <div className="font-semibold mb-1">Budgets</div>
           <div>Total: <span className="font-mono">{budgets.total ?? '—'}</span></div>
           <div>Max: <span className="font-mono">{budgets.max ?? '—'}</span></div>
-          <div>Status: <span className="font-mono">{budgets.ok===false ? 'Exceeded' : 'OK'}</span></div>`r`n          <div className="h-14 mt-1">`r`n            <ResponsiveContainer width="100%" height="100%">`r`n              <LineChart data={trend}>`r`n                <XAxis dataKey="idx" hide />`r`n                <YAxis hide domain={[ "auto", "auto" ]} />`r`n                <Line type="monotone" dataKey="total" stroke="#0ea5e9" dot={false} strokeWidth={2} />`r`n              </LineChart>`r`n            </ResponsiveContainer>`r`n          </div>
+          <div>Status: <span className="font-mono">{budgets.ok===false ? 'Exceeded' : 'OK'}</span></div>
+          <div className="h-14 mt-1">
+            {trend && trend.length ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trend}>
+                  <XAxis dataKey="idx" hide />
+                  <YAxis hide domain={[ 'auto', 'auto' ]} />
+                  <Line type="monotone" dataKey="total" stroke="#0ea5e9" dot={false} strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-xs text-slate-500">No history yet</div>
+            )}
+          </div>
         </div>
         <div className="border rounded p-2 text-sm">
           <div className="font-semibold mb-1">Summary</div>
@@ -355,6 +384,8 @@ function App(){
   const [logs, setLogs] = useState([])
   const [rebuilding, setRebuilding] = useState(false)
   const [platforms, setPlatforms] = useState(['salla'])
+  const [showConfig, setShowConfig] = useState(false)
+  const [tokenInput, setTokenInput] = useState('')
   const [busyTheme, setBusyTheme] = useState(null)
   const [toast, setToast] = useState(null)
   const [progress, setProgress] = useState({ pct: 0, text: '' })
@@ -381,6 +412,7 @@ function App(){
     if (!selected) { setDetails(null); return }
     fetch(`/api/theme/${encodeURIComponent(selected)}`).then(r=>r.json()).then(setDetails)
   }, [selected])
+  useEffect(() => { try { setTokenInput(localStorage.getItem('factoryToken') || '') } catch {} }, [])
   const downloadCanonical = () => {
     try {
       const blob = new Blob([JSON.stringify((details && details.themeJson) || {}, null, 2)], { type: 'application/json' })
@@ -398,7 +430,7 @@ function App(){
     if (!selected) return
     try {
       setRebuilding(true)
-      await fetch(`/api/build/${encodeURIComponent(selected)}`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ platforms: platforms.join(',') }) })
+      await fetch(`/api/build/${encodeURIComponent(selected)}`, { method: 'POST', headers: { 'Content-Type':'application/json', ...authHeaders() }, body: JSON.stringify({ platforms: platforms.join(',') }) })
       const d = await fetch(`/api/theme/${encodeURIComponent(selected)}`).then(r=>r.json())
       setDetails(d)
     } finally {
@@ -417,8 +449,16 @@ function App(){
               <label key={p} className="flex items-center gap-1"><input type="checkbox" checked={platforms.includes(p)} onChange={(e)=> setPlatforms(prev => e.target.checked ? Array.from(new Set([...prev, p])) : prev.filter(x=>x!==p))} /> {p}</label>
             ))}
           </div>
+          <button onClick={()=> setShowConfig(v=>!v)} className="px-2 py-1 bg-slate-200 rounded text-sm">Config</button>
         </div>
       </header>
+      {showConfig && (
+        <div className="bg-amber-50 border-b p-3 flex items-center gap-2">
+          <label className="text-sm text-slate-700">Factory Token:</label>
+          <input value={tokenInput} onChange={e=>setTokenInput(e.target.value)} placeholder="Optional: FACTORY_TOKEN" className="border rounded px-2 py-1 text-sm w-80" />
+          <button onClick={()=>{ try { localStorage.setItem('factoryToken', tokenInput || ''); alert('Saved'); } catch {} }} className="px-2 py-1 bg-emerald-600 text-white rounded text-sm">Save</button>
+        </div>
+      )}
       <main className="max-w-6xl mx-auto">
         {toast && (
           <div className={`mx-4 mt-3 px-3 py-2 rounded text-white ${toast.type==='success'?'bg-emerald-600': toast.type==='error'?'bg-rose-600':'bg-slate-700'}`}>{toast.text}</div>
@@ -453,19 +493,20 @@ function App(){
                 </div>
                 <div className="bg-white border rounded p-3 md:col-span-2">
                   <h3 className="font-semibold mb-2">Build outputs</h3>
-                  <BuildFiles details={details} selected={selected} busyTheme={busyTheme} platformStatus={platformStatus} />
+                  <BuildFiles details={details} selected={selected} busyTheme={busyTheme} />
                 </div>
               </div>
             )}
           </div>
         )}
         <div className="bg-white border rounded p-3 md:col-span-2">
-  <h3 className="font-semibold mb-2">QA Report</h3>
-  {!details?.name ? null : (
-    <QAView name={selected} />
-  )}
-</div>\n<QASummary name={selected} />
-<LogConsole />
+          <h3 className="font-semibold mb-2">QA Report</h3>
+          {!details?.name ? null : (
+            <QAView name={selected} />
+          )}
+        </div>
+        <QASummary name={selected} />
+        <LogConsole />
       </main>
     </div>
   )
