@@ -71,3 +71,12 @@
 ---
 
 ## 🧱 Outputs & Layout\r\n\r\nEach theme build produces:\r\n\r\n```\r\nsmart-input/\r\n ├─ input/<theme>/\r\n └─ canonical/<theme>/\r\n     ├─ index.json, theme.json, qa-summary.json\r\n     └─ assets-manifest.json\r\n\r\nbuild/\r\n ├─ salla-themes/<theme>/ (manifest.json, ZIP)\r\n ├─ zid-themes/<theme>/ (manifest.json, ZIP)\r\n └─ shopify-themes/<theme>/ (manifest.json, ZIP)\r\n\r\nqa/\r\n ├─ reports/<theme>-QA.json, <theme>-QA.html\r\n └─ screenshots/<theme>/current-*.png\r\n```\r\n\r\n**Manifest Fields (unified)**\r\n\r\n| Field | Description |\r\n|--------|-------------|\r\n| `folder` | Theme namespace |\r\n| `platform` | `salla` | `zid` | `shopify` |\r\n| `timestamp` | UTC build time |\r\n| `sectionsDetected` | Number of sections extracted |\r\n| `componentsExtracted` | Component count |\r\n| `assetsFound` | Total assets processed |\r\n| `assets` | List of emitted assets |\r\n\r\n## 🔧 CLI Cheatsheet\r\n\r\n- Build one theme (with QA): `node src/cli/factory-build.cjs <folder>`\r\n- Multi-platform: `SMART_PLATFORMS=salla,zid,shopify node src/cli/factory-build.cjs <folder>`\r\n- Stability: `npm run stability -- --themes=<t1>,<t2> --cycles=5 --no-consume`\r\n- QA only: `npm run qa:run -- <folder>`\r\n\r\n## 🧪 Nightly Stability + QA\r\n\r\n- GitHub Actions workflow `.github/workflows/nightly.yml` runs nightly at 03:00 UTC\r\n- Artifacts: logs, QA reports, screenshots\r\n\r\n## 🔐 Auth Token (optional)\r\n\r\nSome endpoints accept `Authorization: Bearer` header (e.g., uploads/builds). In the dashboard, set `localStorage.factoryToken` to your token to include it automatically.\r\n
+
+## 🆕 What’s New in v2.2.0
+
+- Multi‑platform adapters (Salla default; optional Zid/Shopify) with unified manifest.json including platform.
+- Dashboard enhancements: build progress bar, toasts, per‑platform status, downloads, canonical export, QA summary.
+- Automatic QA post‑build: JSON + HTML reports; visual diffs and budgets; nightly workflow with artifacts.
+- Stability tooling: stability-runner, ZIP extractor, watcher utilities.
+- Docs refreshed and CHANGELOG added; release tag 2.2.0 published.
+

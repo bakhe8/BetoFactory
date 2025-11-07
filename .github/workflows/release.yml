@@ -1,9 +1,12 @@
-name: Release ZIP
+﻿name: Release ZIP
 
 on:
   push:
     tags:
       - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build-zip:
@@ -20,8 +23,9 @@ jobs:
         run: npm ci || npm install
       - name: Build
         run: npm run build
-      - name: Upload ZIP artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release and upload ZIP
+        uses: softprops/action-gh-release@v1
         with:
-          name: beto-theme-zip
-          path: build/beto-theme.zip
+          body_path: CHANGELOG.md
+          files: |
+            build/beto-theme.zip
