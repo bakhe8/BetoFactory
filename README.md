@@ -49,11 +49,12 @@ In the dashboard:
 
 | Purpose | File |
 |----------|------|
-| ⚡ Quickstart (Smart Input) | docs/SMART-INPUT-QUICKSTART.md |
-| 🧭 Developer Kickoff | docs/DEVELOPER_KICKOFF_GUIDE.md |
-| 🧩 Adapter SDK | docs/adapters/SDK.md |
-| 📊 Dashboard Guide | docs/DASHBOARD-GUIDE.md |
-| 🗺️ Roadmap & Progress | docs/factory-progress.md, docs/roadmap.html |
+| ⚡ Quickstart (Smart Input) | [docs/SMART-INPUT-QUICKSTART.md](docs/SMART-INPUT-QUICKSTART.md) |
+| 🧭 Developer Kickoff | [docs/DEVELOPER_KICKOFF_GUIDE.md](docs/DEVELOPER_KICKOFF_GUIDE.md) |
+| 🧩 Adapter SDK | [docs/adapters/SDK.md](docs/adapters/SDK.md) |
+| 📊 Dashboard Guide | [docs/DASHBOARD-GUIDE.md](docs/DASHBOARD-GUIDE.md) |
+| 🗺️ Roadmap & Progress | [docs/factory-progress.md](docs/factory-progress.md), [docs/roadmap.html](docs/roadmap.html) |
+| 📚 Full Docs Index | [docs/](docs/README.md) |
 
 ---
 
@@ -113,4 +114,3 @@ Some endpoints accept `Authorization: Bearer` header (e.g., uploads/builds). In 
 - Automatic QA post‑build: JSON + HTML reports; visual diffs and budgets; nightly workflow with artifacts.
 - Stability tooling: `stability-runner`, ZIP extractor, watcher utilities.
 - Docs refreshed and CHANGELOG added; release tag `v2.2.0` published.
-
