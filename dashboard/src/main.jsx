@@ -276,7 +276,7 @@ function QASummary({ name }){
           <div className="font-semibold mb-1">Budgets</div>
           <div>Total: <span className="font-mono">{budgets.total ?? '—'}</span></div>
           <div>Max: <span className="font-mono">{budgets.max ?? '—'}</span></div>
-          <div>Status: <span className="font-mono">{budgets.ok===false ? 'Exceeded' : 'OK'}</span></div>
+          <div>Status: <span className="font-mono">{budgets.ok===false ? 'Exceeded' : 'OK'}</span></div>`r`n          <div className="h-14 mt-1">`r`n            <ResponsiveContainer width="100%" height="100%">`r`n              <LineChart data={trend}>`r`n                <XAxis dataKey="idx" hide />`r`n                <YAxis hide domain={[ "auto", "auto" ]} />`r`n                <Line type="monotone" dataKey="total" stroke="#0ea5e9" dot={false} strokeWidth={2} />`r`n              </LineChart>`r`n            </ResponsiveContainer>`r`n          </div>
         </div>
         <div className="border rounded p-2 text-sm">
           <div className="font-semibold mb-1">Summary</div>
@@ -470,6 +470,8 @@ function App(){
 }
 
 createRoot(document.getElementById('root')).render(<App />)
+
+
 
 
 
