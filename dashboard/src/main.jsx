@@ -269,6 +269,8 @@ function QASummary({ name }){
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
         <div className="border rounded p-2 text-sm">
           <div className="font-semibold mb-1">JS Lint</div>
+          <div>CSS Errors: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.errorCount) ?? \"—\"}</span></div>
+          <div>CSS Warnings: <span className="font-mono">{(qa.stages && qa.stages.lintCss && qa.stages.lintCss.warningCount) ?? \"—\"}</span></div>
           <div>Errors: <span className="font-mono">{lintJs.errorCount ?? '—'}</span></div>
           <div>Warnings: <span className="font-mono">{lintJs.warningCount ?? '—'}</span></div>
         </div>

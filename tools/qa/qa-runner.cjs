@@ -65,6 +65,20 @@ async function run(theme){
   rep.stage('lint', lint);
   // Budgets
   const budgets = await computeBudgets(theme); rep.stage('budgets', budgets);
+  // CSS Lint (best-effort) using stylelint API
+  try {
+    const stylelint = require('stylelint');
+    const res = await stylelint.lint({ files: ['build/**/*.css'], config: { extends: ['stylelint-config-standard'] } });
+    const results = Array.isArray(res.results) ? res.results : [];
+    const counts = results.reduce((acc, r) => {
+      const warns = Array.isArray(r.warnings) ? r.warnings : [];
+      for (const w of warns) { if ((w.severity || '').toLowerCase() === 'error') acc.errorCount++; else acc.warningCount++; }
+      return acc;
+    }, { errorCount: 0, warningCount: 0 });
+    rep.stage('lintCss', { ok: !res.errored, errorCount: counts.errorCount, warningCount: counts.warningCount });
+  } catch {
+    rep.stage('lintCss', { ok: true, skipped: true });
+  }
   // Compute status
   const ok = schema.ok && assets.ok && Object.values(platforms).every(p => p.ok !== false) && (budgets.ok !== false) && (lint.ok !== false) && (visual.ok !== false);
   rep.setStatus(ok ? 'passed' : 'failed');
