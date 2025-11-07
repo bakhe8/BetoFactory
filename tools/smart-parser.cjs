@@ -59,7 +59,6 @@ class SmartInputParser {
       } else {
         res = await this.parseFolder(processingPath, outputPath, folderName);
       }
-      const res = await this.parseFolder(processingPath, outputPath, folderName);
       // Resolve safe output names and write consolidated canonical under smart-input/canonical/<folder>/theme.json
       const conflictResolver = require('./conflict-resolver.cjs');
       const { canonicalName, buildName } = conflictResolver.ensureSafeOutput(folderName);
